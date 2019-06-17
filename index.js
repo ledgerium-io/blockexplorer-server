@@ -18,7 +18,7 @@ const server = app.listen(port, () => {
 })
 
 const commandLineArguments = process.argv.slice(2)
-if(commandLineArguments.includes('--resetHead')) {
+if(commandLineArguments.includes('--resync')) {
   console.log("Deleting databases")
 }
 
