@@ -3,12 +3,11 @@ const chalk = require('chalk')
 let clusterWorker = null
 
 if (cluster.isMaster) {
-  console.log(`${chalk.green('[+] Ledgerium BlockExplorer Daemon Cluster Manager initiated (PID: ' + process.pid)})`)
+  console.log(`${chalk.green('[+] Ledgerium Block Explorer Daemon Cluster Manager initiated (PID: ' + process.pid)})`)
   clusterWorker = cluster.fork();
 
   cluster.on('exit', (worker, code, signal) => {
     console.log(chalk.red(code, signal))
-    }
     clusterWorker = cluster.fork();
   });
 }

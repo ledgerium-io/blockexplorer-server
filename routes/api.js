@@ -50,9 +50,9 @@ router.get('/peers', (request, response) => {
 
 router.get('/balance/:address', (request, response) => {
   const {address, unit} = request.params
-  console.log(request.params)
   web3.eth.getBalance(address)
     .then(balance => {
+      console.log(balance)
       if(unit && validUnits.include(unit)) {
         balance = web3.utils.fromWei(balance, unit)
       }
@@ -63,6 +63,7 @@ router.get('/balance/:address', (request, response) => {
       })
     })
     .catch(error =>{
+      console.log(error)
       returnError(response, error)
     })
 })
@@ -145,7 +146,7 @@ router.get('/latestBlock', (request, response) => {
     })
 })
 
-router.get('/latestBlocks/:limit', (request, response) => {
+router.get('/lastBlocks/:limit', (request, response) => {
   const {limit} = request.params
   console.log(limit)
   Block.find().sort({ _id: -1 }).limit(+limit)

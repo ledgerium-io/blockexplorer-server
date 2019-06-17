@@ -5,7 +5,7 @@ router.get('/ping', (request, response) => {
   response.status(200).send({
     success: true,
     timestamp: Date.now(),
-    message: "pong"
+    data: "pong"
   })
 })
 
