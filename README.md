@@ -1,0 +1,13 @@
+# Quorum Block Explorer Backend
+
+.env
+`
+SERVER_PORT=
+MONGO_USERNAME=
+MONGO_PASSWORD=
+MONGO_HOST=
+MONGO_DB=
+WEB3_HTTP=
+WEB3_WS=
+
+`
