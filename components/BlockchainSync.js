@@ -10,51 +10,26 @@ const moment = require('moment')
 require('moment-countdown');
 const web3 = new Web3(new Web3.providers.HttpProvider(process.env.WEB3_HTTP));
 const _cliProgress = require('cli-progress');
-const bar1 = new _cliProgress.Bar({
+
+const syncProgressBar = new _cliProgress.Bar({
     format: ' {bar} {percentage}% | {value}/{total}',
     barCompleteChar: '\u2588',
     barIncompleteChar: '\u2591'
 });
 
 function startProgressBar(start, stop) {
-  bar1.start(stop, start);
+  syncProgressBar.start(stop, start);
 }
 
 function updateProgressBar(start) {
-  bar1.update(start)
+  syncProgressBar.update(start);
 }
 function stopProgressBar() {
-  bar1.stop()
+  syncProgressBar.stop();
 }
 function setTotalProgressBar(total) {
-  bar1.setTotal(total)
+  syncProgressBar.setTotal(total);
 }
-
-
-const web32 = new Web3(new Web3.providers.WebsocketProvider(process.env.WEB3_WS));
-const subscription = web32.eth.subscribe('newBlockHeaders', function(error, result){
-  if (!error) {
-    // console.log(result);
-  }
-    console.error(error);
-   })
-   .on("data", function(blockHeader){
-       web3.eth.getBlock(blockHeader.number)
-        .then(block => {
-          io.emit('newBlockHeaders', block)
-        })
-   })
-   .on("error", console.error);
-
-   const subscriptionTransactions = web32.eth.subscribe('pendingTransactions', function(error, result){
-       if (!error)
-           console.log(result);
-   })
-   .on("data", function(transaction){
-        io.emit('pendingTransaction', transaction)
-   });
-
-
 
 class BlockchainSync {
   constructor() {
@@ -63,10 +38,32 @@ class BlockchainSync {
     this.currentMiner = '';
     this.currentValidators = [];
     this.eta = [];
-    this.average = 86400
-    this.progressBar = false
+    this.average = 86400;
+    this.progressBar = false;
     this.commenceSync()
+    this.startListening()
+  }
 
+  startListening() {
+    const web3WS = new Web3(new Web3.providers.WebsocketProvider(process.env.WEB3_WS));
+    const blockListener = web3WS.eth.subscribe('newBlockHeaders', function(error, result){
+        if (error) return console.log(error);
+      })
+      .on("data", function(blockHeader){
+        web3.eth.getBlock(blockHeader.number)
+          .then(block => {
+            io.emit('newBlockHeaders', block)
+          })
+       })
+      .on("error", console.error);
+
+    const transactionListener = web3WS.eth.subscribe('pendingTransactions', function(error, result){
+      if (error) return console.log(error)
+    })
+      .on("data", function(transaction){
+        io.emit('pendingTransaction', transaction)
+       })
+       .on("error", console.error);
   }
 
   commenceSync() {
@@ -165,6 +162,8 @@ class BlockchainSync {
   }
 
   parseBlock(block) {
+    this.currentMiner = block.miner
+    this.lastKnownBlock
     if(block.transactions.length > 0) {
       this.addTransactions(block.transactions)
     }
