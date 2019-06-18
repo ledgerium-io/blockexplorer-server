@@ -1,9 +1,14 @@
 process.title = "Ledgerium Block Explorer Daemon"
 const dotenv = require('dotenv').config()
+const chalk = require('chalk');
+const cluster = require('cluster')
+if (cluster.isMaster) {
+  console.log(chalk.red('\n Run application with `node daemon`'))
+  process.exit(1)
+}
 const axios = require('axios');
 const express = require('express');
 const mongoose = require('mongoose');
-const chalk = require('chalk');
 const app = express();
 const cors = require('cors');
 const port = process.env.SERVER_PORT || 1337;
@@ -17,6 +22,15 @@ const server = app.listen(port, () => {
   app.use('/', router)
 })
 
+if(!process.env.WEB3_HTTP) {
+  process.exit(401)
+}
+if(!process.env.WEB3_WS) {
+  process.exit(402)
+}
+if(!process.env.MONGO_USERNAME || !process.env.MONGO_PASSWORD || !process.env.MONGO_HOST || !process.env.MONGO_DB) {
+  process.exit(403)
+}
 mongoose.connect(`mongodb+srv://${process.env.MONGO_USERNAME}:${process.env.MONGO_PASSWORD}@${process.env.MONGO_HOST}/${process.env.MONGO_DB}`, { useNewUrlParser: true });
   mongoose.connection.on('connected', () => {
   console.log(chalk.green(`[+] Connected to MongoDB Server`));
