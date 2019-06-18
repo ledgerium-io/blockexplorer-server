@@ -6,12 +6,31 @@ const Transaction = require('../models/Transaction')
 const Address = require('../models/Address')
 const BlockchainSync = require('../components/BlockchainSync')
 const blockchainSync = new BlockchainSync()
-
 const Web3 = require('web3')
 const web3 = new Web3(new Web3.providers.HttpProvider(process.env.WEB3_HTTP));
-
 const validUnits = ["noether","wei","kwei","Kwei","babbage","femtoether","mwei","Mwei","lovelace","picoether","gwei","Gwei","shannon","nanoether","nano","szabo","microether","micro","finney","milliether","milli","ether","kether","grand","mether","gether","tethe"]
 const rpc = require('request')
+
+router.get('/limits', (request, response) => {
+  response.status(200).send({
+    success: true,
+    timestamp: Date.now(),
+    data: {
+      paths: [
+        {
+          path: '/api/latestTransactions/:limit',
+          limit: +process.env.API_LIMIT_TRANSACTIONS || 100,
+          default: 1
+        },
+        {
+          path: '/api/latestBlocks/:limit',
+          limit: +process.env.API_LIMIT_Blocks || 25,
+          default: 1
+        }
+      ]
+    }
+  })
+})
 
 router.get('/nodes', (request, response) => {
   rpc({
@@ -118,7 +137,8 @@ router.get('/address/:address', (request, response) => {
 
 router.get('/latestTransactions/:limit', (request, response) => {
   const {limit} = request.params
-  if(limit > process.env.API_LIMIT_TRANSACTIONS || 100) return returnError(response, error)
+  if(!limit) limit = 1
+  if(+limit > (+process.env.API_LIMIT_TRANSACTIONS || 100)) return returnError(response, `Limit too high (MAX ${process.env.API_LIMIT_TRANSACTIONS})`)
   Transaction.find().sort({ _id: -1 }).limit(+limit)
     .then(tx => {
       response.status(200).send({
@@ -147,8 +167,8 @@ router.get('/latestBlock', (request, response) => {
 })
 
 router.get('/latestBlocks/:limit', (request, response) => {
-  if(limit > process.env.API_LIMIT_BLOCKS || 25) return returnError(response, error)
   const {limit} = request.params
+  if(+limit > (+process.env.API_LIMIT_BLOCKS || 25)) return returnError(response, `Limit too high (MAX ${process.env.API_LIMIT_BLOCKS})`)
   console.log(limit)
   Block.find().sort({ _id: -1 }).limit(+limit)
     .then(block => {
