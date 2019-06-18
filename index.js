@@ -31,6 +31,7 @@ if(!process.env.WEB3_WS) {
 if(!process.env.MONGO_USERNAME || !process.env.MONGO_PASSWORD || !process.env.MONGO_HOST || !process.env.MONGO_DB) {
   process.exit(403)
 }
+mongoose.set('useCreateIndex', true); 
 mongoose.connect(`mongodb+srv://${process.env.MONGO_USERNAME}:${process.env.MONGO_PASSWORD}@${process.env.MONGO_HOST}/${process.env.MONGO_DB}`, { useNewUrlParser: true });
   mongoose.connection.on('connected', () => {
   console.log(chalk.green(`[+] Connected to MongoDB Server`));
