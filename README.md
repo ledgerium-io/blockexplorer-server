@@ -33,8 +33,9 @@ Run `node daemon` to start
 
 ### First run
 
-![Syncing](docs/images/sync.png?raw=true "Block syncing ")
+![Syncing](docs/images/syncing.png?raw=true "Block syncing")
 
+![Synced](docs/images/synced.png?raw=true "Blocks synced")
 
 ### Restart Sync
 
