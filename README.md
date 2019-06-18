@@ -159,7 +159,7 @@ Name | Type | Mandatory | Description
 ------------ | ------------ | ------------ | ------------
 :limit | INT | NO | Default 1; max defined by `.env`
 
-**Example:** http://localhost:2000/api/latestBlock/1
+**Example:** http://localhost:2000/api/latestBlocks/1
 
 **Response:**
 ```javascript
@@ -209,7 +209,7 @@ Name | Type | Mandatory | Description
 ------------ | ------------ | ------------ | ------------
 limit | INT | NO | Default 1; max defined by `.env`
 
-**Example:** http://localhost:2000/api/latestTransactions/:limit
+**Example:** http://localhost:2000/api/latestTransactions/1
 
 
 **Response:**
