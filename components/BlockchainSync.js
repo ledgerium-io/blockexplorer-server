@@ -59,6 +59,7 @@ class BlockchainSync {
             if( block.number >= self.latestBlock) {
               Block.create(block)
                 .then(()=> {
+                  this.parseBlock(block)
                   self.lastBlockProcessed = block.number
                 })
                 .catch(()=>{
