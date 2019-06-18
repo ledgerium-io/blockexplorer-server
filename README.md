@@ -11,7 +11,7 @@
 
 `touch .env`
 
-Edit the .env and add the following fields
+Edit the .env file and add the following fields
 
 ```
 SERVER_PORT=
