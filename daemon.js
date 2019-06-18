@@ -5,9 +5,23 @@ let clusterWorker = null
 if (cluster.isMaster) {
   console.log(`${chalk.green('[+] Ledgerium Block Explorer Daemon Cluster Manager initiated (PID: ' + process.pid)})`)
   clusterWorker = cluster.fork();
-
   cluster.on('exit', (worker, code, signal) => {
-    console.log(chalk.red(code, signal))
+    switch(code) {
+      case 401:
+        console.log(chalk.red('\n Missing WEB3_HTTP in .env'))
+        process.exit(1)
+        break;
+      case 402:
+      console.log(chalk.red('\n Missing WEB3_WS in .env'))
+        process.exit(1)
+        break;
+      case 403:
+      console.log(chalk.red('\n Missing MONGO_DB, MONGO_HOST, MONGO_PASSWORD or MONGO_USERNAME in .env'))
+        process.exit(1)
+        break;
+      default:
+        break;
+    }
     clusterWorker = cluster.fork();
   });
 }
