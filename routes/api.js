@@ -118,7 +118,7 @@ router.get('/address/:address', (request, response) => {
 
 router.get('/latestTransactions/:limit', (request, response) => {
   const {limit} = request.params
-  console.log(limit)
+  if(limit > process.env.API_LIMIT_TRANSACTIONS || 100) return returnError(response, error)
   Transaction.find().sort({ _id: -1 }).limit(+limit)
     .then(tx => {
       response.status(200).send({
@@ -147,6 +147,7 @@ router.get('/latestBlock', (request, response) => {
 })
 
 router.get('/latestBlocks/:limit', (request, response) => {
+  if(limit > process.env.API_LIMIT_BLOCKS || 25) return returnError(response, error)
   const {limit} = request.params
   console.log(limit)
   Block.find().sort({ _id: -1 }).limit(+limit)
