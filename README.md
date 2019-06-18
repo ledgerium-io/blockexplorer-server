@@ -1,7 +1,10 @@
-# Quorum Block Explorer Backend
+# Quorum Block Explorer
 
+An Ethereum and Quorum private blockchain explorer
 
-### Quick start
+## Quick start
+
+### Download and install dependencies
 
 `git clone https://github.com/SkyTradeInc/quorumblockexporer.git`
 
@@ -11,7 +14,7 @@
 
 `touch .env`
 
-Edit the .env file and add the following fields
+Edit the `.env` file and add the following fields
 
 ```
 SERVER_PORT=
@@ -26,7 +29,14 @@ API_LIMIT_BLOCKS=
 API_LIMIT_TRANSACTIONS=
 ```
 
-`node daemon`
+Run `node daemon` to start
+
+### First run
+
+![Syncing](docs/images/sync.png?raw=true "Block syncing ")
+
+
+### Restart Sync
 
 To reset block data start with flag '--resync'
 
@@ -34,7 +44,7 @@ To reset block data start with flag '--resync'
 
 # General API Information
 
-* The default base endpoint is: http://localhost:2000
+* The default base endpoint is: http://localhost:2000 unless specified SERVER_PORT in the `.env`
 * All endpoints return either a JSON object or array.
 * Data is returned in **descending** order. Newest first, oldest last.
 * All time and timestamp related fields are in milliseconds.
