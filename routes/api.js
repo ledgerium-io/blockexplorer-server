@@ -146,7 +146,7 @@ router.get('/latestBlock', (request, response) => {
     })
 })
 
-router.get('/lastBlocks/:limit', (request, response) => {
+router.get('/latestBlocks/:limit', (request, response) => {
   const {limit} = request.params
   console.log(limit)
   Block.find().sort({ _id: -1 }).limit(+limit)
