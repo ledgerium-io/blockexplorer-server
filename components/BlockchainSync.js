@@ -253,10 +253,9 @@ class BlockchainSync {
         this.syncing = false
         console.log(chalk.green(`[+] Status: SYNC`))
         setTimeout(()=> {
-          this.checkSync()
+          return this.checkSync()
         },5000)
       }
-
       if(!this.progressBar) {
         this.progressBar = !this.progressBar
         startProgressBar(lastBlockProcessed, data[1].number)
