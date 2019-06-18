@@ -31,8 +31,9 @@ To reset block data start with flag '--resync'
 
 # General API Information
 
-* The base endpoint is: http://localhost:2000
+* The default base endpoint is: http://localhost:2000
 * All endpoints return either a JSON object or array.
+* Data is returned in **descending** order. Newest first, oldest last.
 * All time and timestamp related fields are in milliseconds.
 * HTPP `4XX` return codes are used for for malformed requests; the issue is on the sender's side. issue
 * HTTP `429` return code is used when breaking a request rate limit.
