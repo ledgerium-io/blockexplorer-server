@@ -231,11 +231,13 @@ class BlockchainSync {
       this.getLatestBlock()
     ])
     .then(data => {
+
       process.stdout.write("\u001b[2J\u001b[0;0H");
-      this.lastBlockProcessed = data[0] && data[0].number ? data[0].number : 0
       const lastBlockProcessed = data[0] && data[0].number ? data[0].number : 0
+      this.lastBlockProcessed = lastBlockProcessed
       this.latestBlock = data[1].number
-      if(this.syncing && lastBlockProcessed < data[1].number) {
+
+      if(this.syncing && (lastBlockProcessed < data[1].number) ) {
         const estimatedTimeLeft = ((data[1]-lastBlockProcessed)*this.average)
         console.log(chalk.yellow(`[!] Status: NOT SYNC `)) //`${chalk.cyan(lastBlockProcessed.toLocaleString())}/${chalk.cyan(data[1].number.toLocaleString())} blocks (${((lastBlockProcessed/data[1].number)*100).toFixed(2)}%)`))
         console.log(chalk.yellow(`[!] Average Speed: ${process.env.SYNC_REQUESTS} per ${(this.average/1000).toFixed(2)} second(s)`))
@@ -246,13 +248,15 @@ class BlockchainSync {
         } else {
           this.batchBlockRequest(lastBlockProcessed, data[1].number)
         }
+
       } else {
         this.syncing = false
         console.log(chalk.green(`[+] Status: SYNC`))
         setTimeout(()=> {
           this.checkSync()
-        },2500)
+        },5000)
       }
+
       if(!this.progressBar) {
         this.progressBar = !this.progressBar
         startProgressBar(lastBlockProcessed, data[1].number)
