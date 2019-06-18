@@ -6,8 +6,30 @@ const Block = require('../models/Block')
 const Transaction = require('../models/Transaction')
 const Web3 = require('web3')
 const commandLineArguments = process.argv.slice(2)
-
+const moment = require('moment')
+require('moment-countdown');
 const web3 = new Web3(new Web3.providers.HttpProvider(process.env.WEB3_HTTP));
+const _cliProgress = require('cli-progress');
+const bar1 = new _cliProgress.Bar({
+    format: ' {bar} {percentage}% | {value}/{total}',
+    barCompleteChar: '\u2588',
+    barIncompleteChar: '\u2591'
+});
+
+function startProgressBar(start, stop) {
+  bar1.start(stop, start);
+}
+
+function updateProgressBar(start) {
+  bar1.update(start)
+}
+function stopProgressBar() {
+  bar1.stop()
+}
+function setTotalProgressBar(total) {
+  bar1.setTotal(total)
+}
+
 
 const web32 = new Web3(new Web3.providers.WebsocketProvider(process.env.WEB3_WS));
 const subscription = web32.eth.subscribe('newBlockHeaders', function(error, result){
@@ -41,8 +63,8 @@ class BlockchainSync {
     this.currentMiner = '';
     this.currentValidators = [];
     this.eta = [];
-    this.average = 1440*60
-
+    this.average = 86400
+    this.progressBar = false
     this.commenceSync()
 
   }
@@ -86,13 +108,19 @@ class BlockchainSync {
   addBalances(tx) {
     if(tx.value > 0) {
       const {to, from, value, blockNumber} = tx
-      console.log(tx.to, tx.from)
       const balance = value
+      const address = tx.to
       Address.findOne({address: tx.to})
         .then(doc => {
           if(!doc) {
             console.log(chalk.cyan(`New address found`))
-            Address.create({to, balance, blockNumber})
+            Address.create({address, balance, blockNumber})
+              .then(newAddress => {
+                console.log(newAddress)
+              })
+              .catch(error => {
+                console.log(error)
+              })
           } else {
             doc.balance += value
             doc.blockNumber = blockNumber
@@ -172,11 +200,9 @@ class BlockchainSync {
         let promises = []
         const blocks = done.response
         for(let i=0; i<blocks.length; i++) {
-          promises.push(Block.create(blocks[i]))
           this.parseBlock(blocks[i])
         }
-
-
+        promises.push(Block.create(blocks))
         Promise.all(promises)
         .then(saved => {
           this.checkSync()
@@ -194,20 +220,32 @@ class BlockchainSync {
       this.getLatestBlock()
     ])
     .then(data => {
-      process.stdout.write("\u001b[2J\u001b[0;0H");
       this.lastBlockProcessed = data[0] && data[0].number ? data[0].number : 0
       const lastBlockProcessed = data[0] && data[0].number ? data[0].number : 0
       this.latestBlock = data[1].number
       if(lastBlockProcessed < data[1].number) {
-        console.log(chalk.yellow(`[!] Out of sync: ${lastBlockProcessed.toLocaleString()}/${data[1].number.toLocaleString()} blocks (${((lastBlockProcessed/data[1].number)*100).toFixed(2)}%)`))
-        console.log(chalk.yellow(`[!] ETA to completion: ${((((this.average*(data[1].number - lastBlockProcessed))/process.env.SYNC_REQUESTS)/1000)/60).toFixed(2)} minutes (process.env.SYNC_REQUESTS/${(this.average/1000).toFixed(2)}s)`))
-        if(data[1].number-lastBlockProcessed > process.env.SYNC_REQUESTS) {
-          this.batchBlockRequest(lastBlockProcessed, lastBlockProcessed+process.env.SYNC_REQUESTS)
+        const estimatedTimeLeft = ((data[1]-lastBlockProcessed)*this.average)
+        process.stdout.write("\u001b[2J\u001b[0;0H");
+        console.log(chalk.yellow(`[!] Status: NOT SYNC `)) //`${chalk.cyan(lastBlockProcessed.toLocaleString())}/${chalk.cyan(data[1].number.toLocaleString())} blocks (${((lastBlockProcessed/data[1].number)*100).toFixed(2)}%)`))
+        console.log(chalk.yellow(`[!] Average Speed: ${process.env.SYNC_REQUESTS} per ${(this.average/1000).toFixed(2)} second(s)`))
+        console.log(chalk.yellow(`[!] Estimated time left: ${chalk.cyan(moment().countdown(Date.now() + ((this.average*(data[1].number - lastBlockProcessed))/process.env.SYNC_REQUESTS)))}\n\n`))
+        console
+        if(!this.progressBar) {
+          this.progressBar = !this.progressBar
+          startProgressBar(lastBlockProcessed, data[1].number)
+        } else {
+          updateProgressBar(lastBlockProcessed)
+          setTotalProgressBar(data[1].number)
+        }
+
+
+        if(data[1].number-lastBlockProcessed > +process.env.SYNC_REQUESTS) {
+          this.batchBlockRequest(lastBlockProcessed, lastBlockProcessed + +process.env.SYNC_REQUESTS)
         } else {
           this.batchBlockRequest(lastBlockProcessed, data[1].number)
         }
       } else {
-        console.log(chalk.green(`[+] In sync`))
+        console.log(chalk.green(`[+] Status: SYNC`))
       }
     })
   }
