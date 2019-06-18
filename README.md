@@ -68,7 +68,7 @@ To reset block data start with flag '--resync'
 
 **Parameters:** None
 
-http://localhost:2000/ping
+**Example:** http://localhost:2000/ping
 
 **Response:**
 ```javascript
@@ -81,11 +81,9 @@ http://localhost:2000/ping
 
 ### GET /api/limits
 
-**Parameters** None
+**Parameters:** None
 
-**Example**
-
-http://localhost:2000/api/limits
+**Example:** http://localhost:2000/api/limits
 
 **Response:**
 ```javascript
@@ -112,11 +110,9 @@ http://localhost:2000/api/limits
 
 ###  GET/api/latestBlock
 
-**Parameters** None
+**Parameters:** None
 
-**Example**
-
-http://localhost:2000/api/latestBlock
+**Example:** http://localhost:2000/api/latestBlock
 
 **Response:**
 ```javascript
@@ -157,15 +153,13 @@ http://localhost:2000/api/latestBlock
 
 ### GET /api/latestBlocks/:limit
 
-**Parameters**
+**Parameters:**
 
 Name | Type | Mandatory | Description
 ------------ | ------------ | ------------ | ------------
 :limit | INT | NO | Default 1; max defined by `.env`
 
-**Example**
-
-http://localhost:2000/api/latestBlock/1
+**Example:** http://localhost:2000/api/latestBlock/1
 
 **Response:**
 ```javascript
@@ -209,15 +203,13 @@ http://localhost:2000/api/latestBlock/1
 
 ### GET /api/latestTransactions/:limit
 
-**Parameters**
+**Parameters:**
 
 Name | Type | Mandatory | Description
 ------------ | ------------ | ------------ | ------------
 limit | INT | NO | Default 1; max defined by `.env`
 
-**Example**
-
-http://localhost:2000/api/latestTransactions/:limit
+**Example:** http://localhost:2000/api/latestTransactions/:limit
 
 
 **Response:**
@@ -250,15 +242,13 @@ http://localhost:2000/api/latestTransactions/:limit
 
 ### GET /api/address/:address
 
-**Parameters**
+**Parameters:**
 
 Name | Type | Mandatory | Description
 ------------ | ------------ | ------------ | ------------
 address | STRING | YES | Look up an address
 
-**Example**
-
-http://localhost:2000/api/address/0xF232A4BF183cF17D09Bea23e19CEfF58Ad9dbFED
+**Example:** http://localhost:2000/api/address/0xF232A4BF183cF17D09Bea23e19CEfF58Ad9dbFED
 
 **Response:**
 ```javascript
@@ -278,16 +268,14 @@ http://localhost:2000/api/address/0xF232A4BF183cF17D09Bea23e19CEfF58Ad9dbFED
 
 ### GET /api/tx/:hash
 
-**Parameters**
+**Parameters:**
 
 Name | Type | Mandatory | Description
 ------------ | ------------ | ------------ | ------------
 :hash | STRING | YES | Look up a transaction hash
 
 
-**Example**
-
-http://localhost:2000/api/tx/0x85a16d46df13f5e3576ecc187e08aaa65a28ce2882cdb996a0342f14b7f0075b
+**Example:** http://localhost:2000/api/tx/0x85a16d46df13f5e3576ecc187e08aaa65a28ce2882cdb996a0342f14b7f0075b
 
 **Response:**
 ```javascript
@@ -317,15 +305,13 @@ http://localhost:2000/api/tx/0x85a16d46df13f5e3576ecc187e08aaa65a28ce2882cdb996a
 
 ### GET /api/block/:number
 
-**Parameters**
+**Parameters:**
 
 Name | Type | Mandatory | Description
 ------------ | ------------ | ------------ | ------------
 :number | STRING | YES | Look up a block by number
 
-**Example**
-
-http://localhost:2000/api/block/1
+**Example:** http://localhost:2000/api/block/1
 
 ```javascript
 {
@@ -365,16 +351,14 @@ http://localhost:2000/api/block/1
 ```
 ### GET /api/balance/:address
 
-**Parameters**
+**Parameters:**
 
 Name | Type | Mandatory | Description
 ------------ | ------------ | ------------ | ------------
 address | STRING | YES | Get balance for an address in wei
 
 
-**Example**
-
-http://localhost:2000/api/balance/0x0000000000000000000000000000000000002023
+**Example:** http://localhost:2000/api/balance/0x0000000000000000000000000000000000002023
 
 **Response:**
 ```javascript
@@ -388,10 +372,9 @@ http://localhost:2000/api/balance/0x0000000000000000000000000000000000002023
 
 ### GET /api/peers
 
-**Parameters** None
+**Parameters:** None
 
-**Example**
-http://localhost:2000/api/peers
+**Example:** http://localhost:2000/api/peers
 
 **Response:**
 ```javascript
@@ -404,11 +387,9 @@ http://localhost:2000/api/peers
 
 ### GET /api/nodes
 
-**Parameters** None
+**Parameters:** None
 
-**Example**
-
-http://localhost:2000/api/nodes
+**Example:** http://localhost:2000/api/nodes
 
 **Response:**
 ```javascript
