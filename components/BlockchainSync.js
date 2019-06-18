@@ -40,19 +40,31 @@ class BlockchainSync {
     this.eta = [];
     this.average = 86400;
     this.progressBar = false;
+    this.syncing = true
     this.commenceSync()
     this.startListening()
   }
 
   startListening() {
+    const self = this
     const web3WS = new Web3(new Web3.providers.WebsocketProvider(process.env.WEB3_WS));
     const blockListener = web3WS.eth.subscribe('newBlockHeaders', function(error, result){
         if (error) return console.log(error);
       })
       .on("data", function(blockHeader){
+        if(self.syncing) return
         web3.eth.getBlock(blockHeader.number)
           .then(block => {
             io.emit('newBlockHeaders', block)
+            if( block.number >= self.latestBlock) {
+              Block.create(block)
+                .then(()=> {
+                  self.lastBlockProcessed = block.number
+                })
+                .catch(()=>{
+                  return
+                })
+            }
           })
        })
       .on("error", console.error);
@@ -219,32 +231,34 @@ class BlockchainSync {
       this.getLatestBlock()
     ])
     .then(data => {
+      process.stdout.write("\u001b[2J\u001b[0;0H");
       this.lastBlockProcessed = data[0] && data[0].number ? data[0].number : 0
       const lastBlockProcessed = data[0] && data[0].number ? data[0].number : 0
       this.latestBlock = data[1].number
       if(lastBlockProcessed < data[1].number) {
         const estimatedTimeLeft = ((data[1]-lastBlockProcessed)*this.average)
-        process.stdout.write("\u001b[2J\u001b[0;0H");
         console.log(chalk.yellow(`[!] Status: NOT SYNC `)) //`${chalk.cyan(lastBlockProcessed.toLocaleString())}/${chalk.cyan(data[1].number.toLocaleString())} blocks (${((lastBlockProcessed/data[1].number)*100).toFixed(2)}%)`))
         console.log(chalk.yellow(`[!] Average Speed: ${process.env.SYNC_REQUESTS} per ${(this.average/1000).toFixed(2)} second(s)`))
         console.log(chalk.yellow(`[!] Estimated time left: ${chalk.cyan(moment().countdown(Date.now() + ((this.average*(data[1].number - lastBlockProcessed))/process.env.SYNC_REQUESTS)))}\n\n`))
-        console
-        if(!this.progressBar) {
-          this.progressBar = !this.progressBar
-          startProgressBar(lastBlockProcessed, data[1].number)
-        } else {
-          updateProgressBar(lastBlockProcessed)
-          setTotalProgressBar(data[1].number)
-        }
 
-
-        if(data[1].number-lastBlockProcessed > +process.env.SYNC_REQUESTS) {
-          this.batchBlockRequest(lastBlockProcessed, lastBlockProcessed + +process.env.SYNC_REQUESTS)
+        if( (data[1].number-lastBlockProcessed) > parseInt(process.env.SYNC_REQUESTS)) {
+          this.batchBlockRequest(lastBlockProcessed, lastBlockProcessed + parseInt(process.env.SYNC_REQUESTS))
         } else {
           this.batchBlockRequest(lastBlockProcessed, data[1].number)
         }
       } else {
+        this.syncing = false
         console.log(chalk.green(`[+] Status: SYNC`))
+        setTimeout(()=> {
+          this.checkSync()
+        },2500)
+      }
+      if(!this.progressBar) {
+        this.progressBar = !this.progressBar
+        startProgressBar(lastBlockProcessed, data[1].number)
+      } else {
+        updateProgressBar(lastBlockProcessed)
+        setTotalProgressBar(data[1].number)
       }
     })
   }
