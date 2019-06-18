@@ -4,8 +4,8 @@ const router = express.Router();
 const Block = require('../models/Block')
 const Transaction = require('../models/Transaction')
 const Address = require('../models/Address')
-// const BlockchainSync = require('../components/BlockchainSync')
-// const blockchainSync = new BlockchainSync()
+const BlockchainSync = require('../components/BlockchainSync')
+const blockchainSync = new BlockchainSync()
 
 const Web3 = require('web3')
 const web3 = new Web3(new Web3.providers.HttpProvider(process.env.WEB3_HTTP));

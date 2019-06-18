@@ -17,11 +17,6 @@ const server = app.listen(port, () => {
   app.use('/', router)
 })
 
-const commandLineArguments = process.argv.slice(2)
-if(commandLineArguments.includes('--resync')) {
-  console.log("Deleting databases")
-}
-
 mongoose.connect(`mongodb+srv://${process.env.MONGO_USERNAME}:${process.env.MONGO_PASSWORD}@${process.env.MONGO_HOST}/${process.env.MONGO_DB}`, { useNewUrlParser: true });
   mongoose.connection.on('connected', () => {
   console.log(chalk.green(`[+] Connected to MongoDB Server`));
@@ -29,3 +24,19 @@ mongoose.connect(`mongodb+srv://${process.env.MONGO_USERNAME}:${process.env.MONG
 mongoose.connection.on('error', (error) => {
   console.log(chalk.red(`[X] ${error}`))
 });
+
+const commandLineArguments = process.argv.slice(2)
+if(commandLineArguments.includes('--resync')) {
+  const Block = require('./models/Block')
+  const Transaction = require('./models/Transaction')
+  const Address = require('./models/Address')
+  let promises = []
+  promises.push(Block.deleteMany({}))
+  promises.push(Transaction.deleteMany({}))
+  promises.push(Address.deleteMany({}))
+  Promise.all(promises)
+    .then(done => {
+      console.log(chalk.bgRed("[!] Database reset"))
+    })
+
+}

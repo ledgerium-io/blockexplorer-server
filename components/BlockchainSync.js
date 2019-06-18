@@ -5,6 +5,7 @@ const Address = require('../models/Address')
 const Block = require('../models/Block')
 const Transaction = require('../models/Transaction')
 const Web3 = require('web3')
+const commandLineArguments = process.argv.slice(2)
 
 const web3 = new Web3(new Web3.providers.HttpProvider(process.env.WEB3_HTTP));
 
@@ -33,7 +34,6 @@ const subscription = web32.eth.subscribe('newBlockHeaders', function(error, resu
 
 
 
-
 class BlockchainSync {
   constructor() {
     this.latestBlock = {};
@@ -42,11 +42,21 @@ class BlockchainSync {
     this.currentValidators = [];
     this.eta = [];
     this.average = 1440*60
-    this.checkSync()
+
+    this.commenceSync()
+
   }
 
   commenceSync() {
-
+    if(!commandLineArguments.includes('--resync')) {
+      this.checkSync()
+    } else {
+      console.log(chalk.red("[!] Starting with --resync flag"))
+      console.log(chalk.bgRed("[!] Deleting database"))
+      setTimeout(()=> {
+        this.checkSync()
+      },20000)
+    }
   }
 
   lastKnownBlock() {
@@ -165,6 +175,8 @@ class BlockchainSync {
           promises.push(Block.create(blocks[i]))
           this.parseBlock(blocks[i])
         }
+
+
         Promise.all(promises)
         .then(saved => {
           this.checkSync()
@@ -183,15 +195,16 @@ class BlockchainSync {
     ])
     .then(data => {
       process.stdout.write("\u001b[2J\u001b[0;0H");
-      this.lastBlockProcessed = data[0].number
+      this.lastBlockProcessed = data[0] && data[0].number ? data[0].number : 0
+      const lastBlockProcessed = data[0] && data[0].number ? data[0].number : 0
       this.latestBlock = data[1].number
-      if(data[0].number < data[1].number) {
-        console.log(chalk.yellow(`[!] Out of sync: ${data[0].number.toLocaleString()}/${data[1].number.toLocaleString()} blocks (${((data[0].number/data[1].number)*100).toFixed(2)}%)`))
-        console.log(chalk.yellow(`[!] ETA to completion: ${((((this.average*(data[1].number - data[0].number))/200)/1000)/60).toFixed(2)} minutes (200/${(this.average/1000).toFixed(2)}s)`))
-        if(data[1].number-data[0].number > 200) {
-          this.batchBlockRequest(data[0].number, data[0].number+200)
+      if(lastBlockProcessed < data[1].number) {
+        console.log(chalk.yellow(`[!] Out of sync: ${lastBlockProcessed.toLocaleString()}/${data[1].number.toLocaleString()} blocks (${((lastBlockProcessed/data[1].number)*100).toFixed(2)}%)`))
+        console.log(chalk.yellow(`[!] ETA to completion: ${((((this.average*(data[1].number - lastBlockProcessed))/process.env.SYNC_REQUESTS)/1000)/60).toFixed(2)} minutes (process.env.SYNC_REQUESTS/${(this.average/1000).toFixed(2)}s)`))
+        if(data[1].number-lastBlockProcessed > process.env.SYNC_REQUESTS) {
+          this.batchBlockRequest(lastBlockProcessed, lastBlockProcessed+process.env.SYNC_REQUESTS)
         } else {
-          this.batchBlockRequest(data[0].number, data[1].number)
+          this.batchBlockRequest(lastBlockProcessed, data[1].number)
         }
       } else {
         console.log(chalk.green(`[+] In sync`))
