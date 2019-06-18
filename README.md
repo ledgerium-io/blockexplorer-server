@@ -65,8 +65,13 @@ To reset block data start with flag '--resync'
 # REST API endpoints
 
 ### GET /ping
+
+**Parameters:** None
+
 http://localhost:2000/ping
-```
+
+**Response:**
+```javascript
 {
     success: true,
     timestamp: 1560810605811,
@@ -75,9 +80,15 @@ http://localhost:2000/ping
 ```
 
 ### GET /api/limits
+
+**Parameters** None
+
+**Example**
+
 http://localhost:2000/api/limits
 
-```
+**Response:**
+```javascript
 {
   success: true,
   timestamp: 1560869747818,
@@ -100,8 +111,15 @@ http://localhost:2000/api/limits
 ```
 
 ###  GET/api/latestBlock
+
+**Parameters** None
+
+**Example**
+
 http://localhost:2000/api/latestBlock
-```
+
+**Response:**
+```javascript
 {
     success: true,
     timestamp: 1560810632182,
@@ -138,9 +156,19 @@ http://localhost:2000/api/latestBlock
 ```
 
 ### GET /api/latestBlocks/:limit
+
+**Parameters**
+
+Name | Type | Mandatory | Description
+------------ | ------------ | ------------ | ------------
+:limit | INT | NO | Default 1; max defined by `.env`
+
+**Example**
+
 http://localhost:2000/api/latestBlock/1
 
-```
+**Response:**
+```javascript
 {
     success: true,
     timestamp: 1560817599208,
@@ -180,10 +208,20 @@ http://localhost:2000/api/latestBlock/1
 ```
 
 ### GET /api/latestTransactions/:limit
-http://localhost:2000/api/latestTransactions/1
+
+**Parameters**
+
+Name | Type | Mandatory | Description
+------------ | ------------ | ------------ | ------------
+limit | INT | NO | Default 1; max defined by `.env`
+
+**Example**
+
+http://localhost:2000/api/latestTransactions/:limit
 
 
-```
+**Response:**
+```javascript
 {
     success: true,
     timestamp: 1560817650693,
@@ -212,9 +250,18 @@ http://localhost:2000/api/latestTransactions/1
 
 ### GET /api/address/:address
 
+**Parameters**
+
+Name | Type | Mandatory | Description
+------------ | ------------ | ------------ | ------------
+address | STRING | YES | Look up an address
+
+**Example**
+
 http://localhost:2000/api/address/0xF232A4BF183cF17D09Bea23e19CEfF58Ad9dbFED
 
-```
+**Response:**
+```javascript
 {
     success: true,
     timestamp: 1560866329317,
@@ -230,9 +277,20 @@ http://localhost:2000/api/address/0xF232A4BF183cF17D09Bea23e19CEfF58Ad9dbFED
 ```
 
 ### GET /api/tx/:hash
+
+**Parameters**
+
+Name | Type | Mandatory | Description
+------------ | ------------ | ------------ | ------------
+:hash | STRING | YES | Look up a transaction hash
+
+
+**Example**
+
 http://localhost:2000/api/tx/0x85a16d46df13f5e3576ecc187e08aaa65a28ce2882cdb996a0342f14b7f0075b
 
-```
+**Response:**
+```javascript
 {
   success: true,
   timestamp: 1560817697349,
@@ -258,7 +316,18 @@ http://localhost:2000/api/tx/0x85a16d46df13f5e3576ecc187e08aaa65a28ce2882cdb996a
 ```
 
 ### GET /api/block/:number
-```
+
+**Parameters**
+
+Name | Type | Mandatory | Description
+------------ | ------------ | ------------ | ------------
+:number | STRING | YES | Look up a block by number
+
+**Example**
+
+http://localhost:2000/api/block/1
+
+```javascript
 {
     success: true,
     timestamp: 1560839721138,
@@ -295,9 +364,20 @@ http://localhost:2000/api/tx/0x85a16d46df13f5e3576ecc187e08aaa65a28ce2882cdb996a
 
 ```
 ### GET /api/balance/:address
+
+**Parameters**
+
+Name | Type | Mandatory | Description
+------------ | ------------ | ------------ | ------------
+address | STRING | YES | Get balance for an address in wei
+
+
+**Example**
+
 http://localhost:2000/api/balance/0x0000000000000000000000000000000000002023
 
-```
+**Response:**
+```javascript
 {
     success: true,
     timestamp: 1560839800641,
@@ -307,9 +387,14 @@ http://localhost:2000/api/balance/0x0000000000000000000000000000000000002023
 
 
 ### GET /api/peers
+
+**Parameters** None
+
+**Example**
 http://localhost:2000/api/peers
 
-```
+**Response:**
+```javascript
 {
     success: true,
     timestamp: 1560817433799,
@@ -318,9 +403,15 @@ http://localhost:2000/api/peers
 ```
 
 ### GET /api/nodes
+
+**Parameters** None
+
+**Example**
+
 http://localhost:2000/api/nodes
 
-```
+**Response:**
+```javascript
 {
     success: true,
     timestamp: 1560817457031,
@@ -357,9 +448,8 @@ http://localhost:2000/api/nodes
 
 Emits incoming block headers. This can be used as timer to check for changes on the blockchain.
 
-#### Returns
-
-```
+**Response:**
+```javascript
 {
     transactions: [ ],
     uncles: [ ],
@@ -395,9 +485,9 @@ Emits incoming block headers. This can be used as timer to check for changes on 
 
 Emits incoming pending transactions.
 
-#### Returns
 
-```
+**Response:**
+```javascript
 {
     _id: "5d08f6e65821af200e16cf0f",
     blockHash: "0x2e9b5d1c200fde10e6d705e13c82c72f18dfd95f9c12f360c3a73ba6ba5b5400",
