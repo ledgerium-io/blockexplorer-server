@@ -62,6 +62,32 @@ http://localhost:2000/ping
     data: "pong"
 }
 ```
+
+### /api/limits
+http://localhost:2000/api/limits
+
+```
+{
+  success: true,
+  timestamp: 1560869747818,
+  data: {
+    paths: [
+      {
+      path: "/api/latestTransactions/:limit",
+      limit: 100,
+      default: 1
+      },
+      {
+      path: "/api/latestBlocks/:limit",
+      limit: 10,
+      default: 1
+      }
+    ]
+  }
+}
+
+```
+
 ### /api/latestBlock
 http://localhost:2000/api/latestBlock
 ```
@@ -175,7 +201,22 @@ http://localhost:2000/api/latestTx/1
 
 ### /api/address/:address
 
-http://localhost:2000/api/address/[addr]
+http://localhost:2000/api/address/0xF232A4BF183cF17D09Bea23e19CEfF58Ad9dbFED
+
+```
+{
+    success: true,
+    timestamp: 1560866329317,
+    data: {
+        type: 0,
+        _id: "5d08dea55821af200e156ef6",
+        address: "0xF232A4BF183cF17D09Bea23e19CEfF58Ad9dbFED",
+        balance: 2000000000000000000,
+        blockNumber: 30738,
+        __v: 0
+    }
+}
+```
 
 ### /api/tx/:hash
 http://localhost:2000/api/tx/0x85a16d46df13f5e3576ecc187e08aaa65a28ce2882cdb996a0342f14b7f0075b
@@ -277,21 +318,21 @@ http://localhost:2000/api/nodes
         id: "2ff2174822a779671b2873cbb390ad069d2683c94c565b73dd578fd7e13920b487ba4a7aefa802724edf324a4ba20ab0114f0a6c1c5d9c6b4abf76bc022000ef",
         name: "Geth/validator-cn-hk-app010/v1.8.12-stable-62a3b6c1(quorum-v2.2.1)/linux-amd64/go1.11.5",
         caps: [
-        "istanbul/64"
+          "istanbul/64"
         ],
         network: {
-        localAddress: "xxx.xxx.xxx.xxx:xxxxx",
-        remoteAddress: "xxx.xxx.xxx.xxx:xxxxx",
-        inbound: true,
-        trusted: false,
-        static: false
+          localAddress: "xxx.xxx.xxx.xxx:xxxxx",
+          remoteAddress: "xxx.xxx.xxx.xxx:xxxxx",
+          inbound: true,
+          trusted: false,
+          static: false
         },
         protocols: {
-        istanbul: {
-        version: 64,
-        difficulty: 1,
-        head: "0xff950b5dc6d5309153d7f5a38055117be753ee54d30a8b5c3b22f66f663c42b8"
-        }
+            istanbul: {
+            version: 64,
+            difficulty: 1,
+            head: "0xff950b5dc6d5309153d7f5a38055117be753ee54d30a8b5c3b22f66f663c42b8"
+          }
       }
     }]
 }
