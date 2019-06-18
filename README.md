@@ -29,9 +29,28 @@ To reset block data start with flag '--resync'
 
 `node daemon --resync`
 
-# API routes
+# General API Information
 
-## /ping
+* The base endpoint is: http://localhost:2000
+* All endpoints return either a JSON object or array.
+* All time and timestamp related fields are in milliseconds.
+* HTPP `4XX` return codes are used for for malformed requests; the issue is on the sender's side. issue
+* HTTP `429` return code is used when breaking a request rate limit.
+* HTTP `5XX` return codes are used for internal errors; the issue is on server's side.
+* HTTP`200` return code signals response has been sent back to the client
+* Any endpoint can return an ERROR; the error payload is as follows:
+```
+  {
+    success: false,
+    timestamp: 1560818595133,
+    data: "error message"
+  }
+```
+
+# API endpoints
+
+### /ping
+http://localhost:2000/ping
 ```
 {
     success: true,
@@ -39,7 +58,8 @@ To reset block data start with flag '--resync'
     data: "pong"
 }
 ```
-## /api/latestBlock
+### /api/latestBlock
+http://localhost:2000/api/latestBlock
 ```
 {
     success: true,
@@ -76,7 +96,9 @@ To reset block data start with flag '--resync'
 }
 ```
 
-## /api/latestBlocks/:limit
+### /api/latestBlocks/:limit
+http://localhost:2000/api/latestBlock/1
+
 ```
 {
     success: true,
@@ -116,7 +138,9 @@ To reset block data start with flag '--resync'
 
 ```
 
-## /api/latestTx/:limit
+### /api/latestTx/:limit
+http://localhost:2000/api/latestTx/1
+
 
 ```
 {
@@ -145,9 +169,12 @@ To reset block data start with flag '--resync'
 }
 ```
 
-## /api/address/:address
+### /api/address/:address
 
-## /api/tx/:hash
+http://localhost:2000/api/address/0xxxxxxx
+
+### /api/tx/:hash
+http://localhost:2000/api/tx/0x85a16d46df13f5e3576ecc187e08aaa65a28ce2882cdb996a0342f14b7f0075b
 
 ```
 {
@@ -174,13 +201,14 @@ To reset block data start with flag '--resync'
 }
 ```
 
-## /api/block/:number
+### /api/block/:number
 
 
 
-## /api/balance/:address
+### /api/balance/:address
 
-## /api/peers
+### /api/peers
+http://localhost:2000/api/peers
 
 ```
 {
@@ -190,7 +218,8 @@ To reset block data start with flag '--resync'
 }
 ```
 
-## /api/nodes
+### /api/nodes
+http://localhost:2000/api/nodes
 
 ```
 {
@@ -216,7 +245,7 @@ To reset block data start with flag '--resync'
         difficulty: 1,
         head: "0xff950b5dc6d5309153d7f5a38055117be753ee54d30a8b5c3b22f66f663c42b8"
         }
-        }
-        }]
+      }
+    }]
 }
 ```
