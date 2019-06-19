@@ -8,17 +8,20 @@ if (cluster.isMaster) {
   cluster.on('exit', (worker, code, signal) => {
     switch(code) {
       case 401:
-        console.log(chalk.red('\n Missing WEB3_HTTP in .env'))
+        console.log(chalk.red('\n[X] Missing WEB3_HTTP in .env'))
         process.exit(1)
         break;
       case 402:
-      console.log(chalk.red('\n Missing WEB3_WS in .env'))
+      console.log(chalk.red('\n[X] Missing WEB3_WS in .env'))
         process.exit(1)
         break;
       case 403:
-      console.log(chalk.red('\n Missing MONGO_DB, MONGO_HOST, MONGO_PASSWORD or MONGO_USERNAME in .env'))
+      console.log(chalk.red('\n[X] Missing MONGO_DB, MONGO_HOST, MONGO_PASSWORD or MONGO_USERNAME in .env'))
         process.exit(1)
         break;
+      case 500:
+          process.exit(1)
+          break;
       default:
         break;
     }
