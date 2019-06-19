@@ -1,5 +1,6 @@
 const dotenv = require('dotenv').config()
 const express = require('express');
+const rpc = require('request')
 const router = express.Router();
 const Block = require('../models/Block')
 const Transaction = require('../models/Transaction')
@@ -9,7 +10,6 @@ const blockchainSync = new BlockchainSync()
 const Web3 = require('web3')
 const web3 = new Web3(new Web3.providers.HttpProvider(process.env.WEB3_HTTP));
 const validUnits = ["noether","wei","kwei","Kwei","babbage","femtoether","mwei","Mwei","lovelace","picoether","gwei","Gwei","shannon","nanoether","nano","szabo","microether","micro","finney","milliether","milli","ether","kether","grand","mether","gether","tethe"]
-const rpc = require('request')
 
 router.get('/limits', (request, response) => {
   response.status(200).send({
@@ -19,12 +19,12 @@ router.get('/limits', (request, response) => {
       paths: [
         {
           path: '/api/latestTransactions/:limit',
-          limit: +process.env.API_LIMIT_TRANSACTIONS || 100,
+          limit: parseInt(process.env.API_LIMIT_TRANSACTIONS) || 100,
           default: 1
         },
         {
           path: '/api/latestBlocks/:limit',
-          limit: +process.env.API_LIMIT_Blocks || 25,
+          limit: parseInt(process.env.API_LIMIT_Blocks) || 25,
           default: 1
         }
       ]
