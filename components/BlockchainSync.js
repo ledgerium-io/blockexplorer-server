@@ -116,7 +116,7 @@ class BlockchainSync {
   }
 
   addBalances(tx) {
-    if(tx.value > 0) {
+    if(tx.value > 0 || to.gasPrice > 0) {
       const {to, from, value, blockNumber} = tx
       const balance = value
       const address = tx.to
@@ -124,7 +124,9 @@ class BlockchainSync {
         .then(doc => {
           if(!doc) {
             console.log(chalk.cyan(`New address found`))
-            Address.create({address, balance, blockNumber})
+            const transactions = []
+            transactions.push(tx)
+            Address.create({address, balance, transactions, blockNumber})
               .then(newAddress => {
                 console.log(newAddress)
               })
@@ -132,6 +134,7 @@ class BlockchainSync {
                 console.log(error)
               })
           } else {
+            doc.transactions.push(tx)
             doc.balance += value
             doc.blockNumber = blockNumber
             doc.save()
