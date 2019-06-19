@@ -426,7 +426,7 @@ address | STRING | YES | Get balance for an address in wei
 
 ## Detailed Stream information
 
-### .on('newBlockHeaders')
+### .on('newBlockHeaders', [callBack])
 
 Emits incoming block headers. This can be used as timer to check for changes on the blockchain.
 
@@ -463,7 +463,7 @@ Emits incoming block headers. This can be used as timer to check for changes on 
 }
 ```
 
-## .on('pendingTransaction')
+## .on('pendingTransaction', [callBack])
 
 Emits incoming pending transactions.
 
