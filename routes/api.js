@@ -103,6 +103,34 @@ router.get('/block/:number', (request, response) => {
     })
 })
 
+router.get('/blocks', (request, response) => {
+  Block.find().sort({ _id: -1 }).limit(100)
+    .then(data => {
+      return response.status(200).send({
+        success: true,
+        timestamp: Date.now(),
+        data
+      })
+    })
+    .catch(error => {
+      return returnError(response, error)
+    })
+})
+
+router.get('/transactions', (request, response) => {
+  Transaction.find().sort({ _id: -1 }).limit(100)
+  .then(data => {
+    return response.status(200).send({
+      success: true,
+      timestamp: Date.now(),
+      data
+    })
+  })
+  .catch(error => {
+    return returnError(response, error)
+  })
+})
+
 router.get('/tx/:hash', (request, response) => {
   const {hash} = request.params
   Transaction.findOne({hash})
