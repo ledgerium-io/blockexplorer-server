@@ -1,4 +1,4 @@
-process.title = "Ledgerium Block Explorer Daemon"
+process.title = "Ledgerium Block Explorer Daemon v1.0"
 const dotenv = require('dotenv').config()
 const chalk = require('chalk');
 const cluster = require('cluster')
