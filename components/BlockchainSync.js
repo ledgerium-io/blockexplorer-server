@@ -129,13 +129,37 @@ class BlockchainSync {
     })
   }
 
+  createNewMiner(block) {
+    const address = block.miner
+    const blockNumber = block.number
+    const balance = process.env.MINER_BLOCK_REWARD
+    const type = 3
+    let transactions = []
+    transactions.push({
+      blockHash: block.hash,
+      timestamp: block.timestamp,
+      txCount: block.transactions.length,
+      blockNumber: block.number,
+      from: "MINED",
+      blockReward: process.env.MINER_BLOCK_REWARD
+    })
+    Address.create({address, blockNumber, transactions, balance, type})
+  }
 
-
-  addMinerBalance(address) {
+  addMinerBalance(block) {
+    const address = block.miner
     Address.findOne({address})
       .then(account => {
-        if(!account) return createNewMiner()
+        if(!account) return this.createNewMiner(block);
         account.balance += process.env.MINER_BLOCK_REWARD
+        account.transactions.push({
+          blockHash: block.hash,
+          timestamp: block.timestamp,
+          txCount: block.transactions.length,
+          blockNumber: block.number,
+          from: "MINED",
+          blockReward: process.env.MINER_BLOCK_REWARD
+        })
         account.save()
       })
       .catch(error => {
@@ -290,6 +314,7 @@ parseTransactionQue() {
 
   parseBlock(block) {
     this.currentMiner = block.miner
+    this.addMinerBalance(block)
     this.lastKnownBlock
     if(block.transactions.length > 0) {
       this.addTransactions(block.transactions)
