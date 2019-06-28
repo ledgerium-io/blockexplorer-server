@@ -336,8 +336,7 @@ parseTransactionQue() {
       this.getLatestBlock()
     ])
     .then(data => {
-
-      // process.stdout.write("\u001b[2J\u001b[0;0H");
+      process.stdout.write("\u001b[2J\u001b[0;0H");
       const lastBlockProcessed = data[0] && data[0].number ? data[0].number : 0
       this.lastBlockProcessed = lastBlockProcessed
       this.latestBlock = data[1].number
