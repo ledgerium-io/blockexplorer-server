@@ -83,6 +83,15 @@ class BlockchainSync {
        .on("error", console.error);
   }
 
+  addPremine(){
+    const address = "0xF232A4BF183cF17D09Bea23e19CEfF58Ad9dbFED"
+    const blockNumber = 0
+    const transactions = []
+    const balance = 10000000000000
+    const type = 0
+    Address.create({address, blockNumber, transactions, balance, type})
+  }
+
   commenceSync() {
     if(!commandLineArguments.includes('--resync')) {
       this.checkSync()
@@ -90,6 +99,7 @@ class BlockchainSync {
       console.log(chalk.red("[!] Starting with --resync flag"))
       console.log(chalk.bgRed("[!] Deleting database"))
       setTimeout(()=> {
+        this.addPremine()
         this.checkSync()
       },20000)
     }
