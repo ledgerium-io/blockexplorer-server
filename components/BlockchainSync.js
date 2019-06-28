@@ -5,6 +5,8 @@ const Address = require('../models/Address')
 const Block = require('../models/Block')
 const Transaction = require('../models/Transaction')
 const Web3 = require('web3')
+const TransactionProcessor = require('./TransactionProcessor')
+const transactionProcessor = new TransactionProcessor()
 const commandLineArguments = process.argv.slice(2)
 const moment = require('moment')
 require('moment-countdown');
@@ -36,6 +38,7 @@ class BlockchainSync {
     this.latestBlock = {};
     this.lastBlockProcessed = {};
     this.currentMiner = '';
+    this.transactionProcessQue = [];
     this.currentValidators = [];
     this.eta = [];
     this.average = 86400;
@@ -43,6 +46,7 @@ class BlockchainSync {
     this.syncing = true
     this.commenceSync()
     this.startListening()
+    this.parseTransactionQue()
   }
 
   startListening() {
@@ -52,10 +56,10 @@ class BlockchainSync {
         if (error) return console.log(error);
       })
       .on("data", function(blockHeader){
+        io.emit('newBlockHeaders', block)
         if(self.syncing) return
         web3.eth.getBlock(blockHeader.number)
           .then(block => {
-            io.emit('newBlockHeaders', block)
             if( block.number >= self.latestBlock) {
               Block.create(block)
                 .then(()=> {
@@ -115,41 +119,138 @@ class BlockchainSync {
     })
   }
 
-  addBalances(tx) {
-    if(tx.value > 0 || to.gasPrice > 0) {
-      const {to, from, value, blockNumber} = tx
-      const balance = value
-      const address = tx.to
-      Address.findOne({address: tx.to})
+
+
+  addMinerBalance(address) {
+    Address.findOne({address})
+      .then(account => {
+        if(!account) return createNewMiner()
+        account.balance += process.env.MINER_BLOCK_REWARD
+        account.save()
+      })
+      .catch(error => {
+        console.log(error)
+      })
+  }
+
+  addAddress(address, blockNumber, transactions = [], balance = 0, type = 0) {
+    return new Promise((resolve, reject) => {
+      Address.create({address, blockNumber, transactions, balance, type})
+        .then(newAddress => {
+          resolve(newAddress)
+        })
+        .catch(error => {
+          reject(error)
+        })
+    })
+  }
+
+  isValidAddress(address) {
+    return new Promise((resolve, reject) => {
+      web3.utils.isAddress(address) ? resolve(true) : resolve(false)
+    })
+  }
+
+  addressExists(address) {
+    return new Promise((resolve, reject) => {
+      Address.findOne({address})
         .then(doc => {
           if(!doc) {
-            console.log(chalk.cyan(`New address found`))
-            const transactions = []
-            transactions.push(tx)
-            Address.create({address, balance, transactions, blockNumber})
-              .then(newAddress => {
-                console.log(newAddress)
-              })
-              .catch(error => {
-                console.log(error)
-              })
+            resolve(false)
           } else {
-            doc.transactions.push(tx)
-            doc.balance += value
-            doc.blockNumber = blockNumber
-            doc.save()
+            resolve(true)
           }
-        })
 
-      Address.findOne({address: tx.from})
-        .then(doc => {
-          if(!doc) return
-          doc.balance -= value
-          doc.blockNumber = blockNumber
-          doc.save()
         })
-    }
+        .catch(error => {
+          reject(error)
+        })
+    })
   }
+
+  isContract(address) {
+    return new Promise((resolve, reject) => {
+      web3.eth.getCode(address)
+        .then(code => {
+          code === "0x" ? resolve(false) : resolve(true)
+        })
+        .catch(error => {
+          reject(error)
+        })
+    })
+  }
+
+  changeAddressBalance(address, value, tx) {
+    Address.findOne({address})
+      .then(doc => {
+        if(!doc) return;
+        doc.balance += value
+        doc.blockNumber = tx.blockNumber
+        doc.transactions.push(tx)
+        doc.save()
+      })
+      .catch(console.log)
+  }
+
+parseTransactionQue() {
+  const tx = transactionProcessor.getFirstFromQue()
+  this.processTransaction(tx)
+    .then(result => {
+      this.parseTransactionQue()
+    })
+    .catch(error => {
+      console.log(error)
+      setTimeout(()=>{
+        this.parseTransactionQue()
+      },5000)
+    })
+}
+
+
+  processTransaction(tx) {
+      return new Promise((resolve, reject) => {
+        if(!tx) return reject({})
+        if (tx.value <= 0 && tx.gasPrice <= 0 ) return reject({});
+        const {from, to, value, blockNumber} = tx
+        const fromValue = value * -1
+        this.changeAddressBalance(from, fromValue, tx)
+        this.addressExists(to)
+          .then(exists => {
+            if(!exists) {
+              const balance = value
+              const transactions = [tx]
+              const address = to
+              this.isContract(address)
+                .then(contract => {
+                  if(contract) {
+                    const type = 1
+                    Address.create({address, balance, transactions, blockNumber, type})
+                      .then(resolve(true))
+                      .catch(reject({}))
+                  } else {
+                    const type = 0
+                    Address.create({address, balance, transactions, blockNumber, type})
+                    .then(resolve(true))
+                    .catch(reject({}))
+                  }
+                })
+                .catch(error => {
+                  console.log(error)
+                  return reject({})
+                })
+
+            } else {
+              this.changeAddressBalance(to, value, tx)
+              return resolve(true)
+            }
+          })
+          .catch(error => {
+            reject({})
+          })
+      })
+  }
+
+
 
   getTransaction(hash) {
     return new Promise((resolve, reject) => {
@@ -170,7 +271,7 @@ class BlockchainSync {
         .then(tx => {
           Transaction.create(tx)
             .then(savedTx => {
-              this.addBalances(savedTx)
+              transactionProcessor.addTransactionProcessQue(savedTx)
             })
             .catch(console.log)
         })
@@ -236,7 +337,7 @@ class BlockchainSync {
     ])
     .then(data => {
 
-      process.stdout.write("\u001b[2J\u001b[0;0H");
+      // process.stdout.write("\u001b[2J\u001b[0;0H");
       const lastBlockProcessed = data[0] && data[0].number ? data[0].number : 0
       this.lastBlockProcessed = lastBlockProcessed
       this.latestBlock = data[1].number
