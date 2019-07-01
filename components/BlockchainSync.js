@@ -102,13 +102,33 @@ class BlockchainSync {
   }
 
   addPremine(){
-    //const preMiners = JSON.parse(process.env.preMiners)
-    const address = "0xF232A4BF183cF17D09Bea23e19CEfF58Ad9dbFED"
-    const blockNumber = 0
-    const transactions = []
-    const balance = 10000000000000
-    const type = 0
-    Address.create({address, blockNumber, transactions, balance, type})
+    web3.eth.getBlock(2)
+      .then(block => {
+        let preminers = []
+        let promises = []
+        preminers.push(block.miner)
+        for(let i=0; i<block.validators.length; i++) {
+          preminers.push(block.validators[i])
+        }
+        for(let i=0; i<preminers.length; i++) {
+          promises.push(web3.eth.getBalance(preminers[i]))
+        }
+        Promise.all(promises)
+          .then(done => {
+            for(let i=0; i<done.length; i++) {
+              const address = preminers[i]
+              const blockNumber = 1
+              const transactions = []
+              const balance = done[i]
+              const type = 2
+              Address.create({address, blockNumber, transactions, balance, type})
+                .then(console.log("Created Premine Balance: ", balance, address))
+            }
+          })
+      })
+      .catch(error => {
+        console.log(error)
+      })
   }
 
   commenceSync() {
@@ -120,7 +140,7 @@ class BlockchainSync {
       setTimeout(()=> {
         this.addPremine()
         this.checkSync()
-      },20000)
+      },10000)
     }
   }
 
