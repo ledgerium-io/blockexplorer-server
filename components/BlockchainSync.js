@@ -41,6 +41,9 @@ class BlockchainSync {
     this.transactionProcessQue = [];
     this.currentValidators = [];
     this.eta = [];
+    this.lastBlockTimes = []
+    this.lastBlockTime = Date.now()
+    this.averageBlockTime = 5
     this.average = 86400;
     this.progressBar = false;
     this.syncing = true
@@ -49,17 +52,32 @@ class BlockchainSync {
     this.parseTransactionQue()
   }
 
+  addAverageBlockTime(time) {
+    if(this.lastBlockTimes.length > 10) {
+      this.lastBlockTimes.shift()
+    }
+    this.lastBlockTimes.push(time)
+    const average = list => list.reduce((prev, curr) => prev + curr) / list.length;
+    this.averageBlockTime = average(this.lastBlockTimes)
+  }
+
   startListening() {
+    setInterval(() => {
+      io.emit('averageBlockTime', this.averageBlockTime)
+    },1000)
+
     const self = this
     const web3WS = new Web3(new Web3.providers.WebsocketProvider(process.env.WEB3_WS));
     const blockListener = web3WS.eth.subscribe('newBlockHeaders', function(error, result){
         if (error) return console.log(error);
       })
       .on("data", function(blockHeader){
-        io.emit('newBlockHeaders', block)
-        if(self.syncing) return
         web3.eth.getBlock(blockHeader.number)
           .then(block => {
+            io.emit('newBlockHeaders', block)
+            self.addAverageBlockTime(Date.now()-self.lastBlockTime)
+            self.lastBlockTime = Date.now()
+            if(self.syncing) return
             if( block.number >= self.latestBlock) {
               Block.create(block)
                 .then(()=> {
@@ -84,6 +102,7 @@ class BlockchainSync {
   }
 
   addPremine(){
+    //const preMiners = JSON.parse(process.env.preMiners)
     const address = "0xF232A4BF183cF17D09Bea23e19CEfF58Ad9dbFED"
     const blockNumber = 0
     const transactions = []
@@ -127,44 +146,6 @@ class BlockchainSync {
           reject(error)
         })
     })
-  }
-
-  createNewMiner(block) {
-    const address = block.miner
-    const blockNumber = block.number
-    const balance = process.env.MINER_BLOCK_REWARD
-    const type = 3
-    let transactions = []
-    transactions.push({
-      blockHash: block.hash,
-      timestamp: block.timestamp,
-      txCount: block.transactions.length,
-      blockNumber: block.number,
-      from: "MINED",
-      blockReward: process.env.MINER_BLOCK_REWARD
-    })
-    Address.create({address, blockNumber, transactions, balance, type})
-  }
-
-  addMinerBalance(block) {
-    const address = block.miner
-    Address.findOne({address})
-      .then(account => {
-        if(!account) return this.createNewMiner(block);
-        account.balance += process.env.MINER_BLOCK_REWARD
-        account.transactions.push({
-          blockHash: block.hash,
-          timestamp: block.timestamp,
-          txCount: block.transactions.length,
-          blockNumber: block.number,
-          from: "MINED",
-          blockReward: process.env.MINER_BLOCK_REWARD
-        })
-        account.save()
-      })
-      .catch(error => {
-        console.log(error)
-      })
   }
 
   addAddress(address, blockNumber, transactions = [], balance = 0, type = 0) {
@@ -233,7 +214,6 @@ parseTransactionQue() {
       this.parseTransactionQue()
     })
     .catch(error => {
-      console.log(error)
       setTimeout(()=>{
         this.parseTransactionQue()
       },5000)
@@ -314,8 +294,6 @@ parseTransactionQue() {
 
   parseBlock(block) {
     this.currentMiner = block.miner
-    this.addMinerBalance(block)
-    this.lastKnownBlock
     if(block.transactions.length > 0) {
       this.addTransactions(block.transactions)
     }
@@ -328,6 +306,87 @@ parseTransactionQue() {
     this.eta.push(time)
     const average = list => list.reduce((prev, curr) => prev + curr) / list.length;
     this.average = average(this.eta)
+  }
+
+
+  batchMinerRewards(blocks) {
+    return new Promise((resolve, reject) => {
+      let promises = []
+      let minerArray = []
+      let miners = {}
+      for(let i=0; i<blocks.length; i++) {
+        if(miners[blocks[i].miner]) {
+          miners[blocks[i].miner].blockNumber = blocks[i].number
+          miners[blocks[i].miner].balance += +process.env.MINER_BLOCK_REWARD
+          miners[blocks[i].miner].transactions.push({
+            blockHash: blocks[i].hash,
+            blockNumber: blocks[i].number,
+            timestamp: blocks[i].timestamp,
+            from: "MINED",
+            to: blocks[i].miner,
+            value: +process.env.MINER_BLOCK_REWARD
+          })
+        } else {
+          miners[blocks[i].miner] = {
+            address: blocks[i].miner,
+            blockNumber: blocks[i].number,
+            transactions: [{
+              blockHash: blocks[i].hash,
+              blockNumber: blocks[i].number,
+              timestamp: blocks[i].timestamp,
+              from: "MINED",
+              to: blocks[i].miner,
+              value: +process.env.MINER_BLOCK_REWARD
+            }],
+            balance: +process.env.MINER_BLOCK_REWARD,
+            type: 3
+          }
+        }
+      }
+      Object.keys(miners).forEach((miner) => {
+        const address = miners[miner].address
+        minerArray.push(miners[miner].address)
+        promises.push(Address.findOne({address}))
+      })
+
+      let promises2 = []
+      Promise.all(promises)
+        .then(data => {
+          for(let i=0; i<data.length; i++) {
+            const account = data[i]
+            if(!account) {
+              const miner = minerArray[i];
+              const address = miner
+              const blockNumber = miners[miner].blockNumber
+              const transactions = miners[miner].transactions
+              const balance = miners[miner].balance
+              const type = miners[miner].type
+              promises2.push(Address.create({address, blockNumber, transactions, balance, type}))
+            } else {
+              const miner = account.address;
+              account.blockNumber = miners[miner].blockNumber
+              account.transactions = miners[miner].transactions
+              account.balance += miners[miner].balance
+              account.type = 3
+              promises2.push(this.saveMinerUpdates(account))
+            }
+          }
+          Promise.all(promises2)
+            .then(done => {
+              resolve({})
+            })
+            .catch(resolve({}))
+        })
+        .catch(resolve({}))
+    })
+  }
+
+  saveMinerUpdates(account) {
+    return new Promise((resolve, reject)=>{
+      account.save()
+        .then(resolve({}))
+        .catch(resolve({}))
+    })
   }
 
 
@@ -353,6 +412,7 @@ parseTransactionQue() {
         for(let i=0; i<blocks.length; i++) {
           this.parseBlock(blocks[i])
         }
+        if(blocks.length > 0) promises.push(this.batchMinerRewards(blocks));
         promises.push(Block.create(blocks))
         Promise.all(promises)
         .then(saved => {
