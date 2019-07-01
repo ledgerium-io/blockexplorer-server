@@ -32,6 +32,17 @@ router.get('/limits', (request, response) => {
   })
 })
 
+router.get('/contractCount', (request, response) => {
+  Address.find({type: 1})
+    .then(results => {
+      response.status(200).send({
+        success: true,
+        timestamp: Date.now(),
+        data: results.length
+      })
+    })
+})
+
 router.get('/nodes', (request, response) => {
   rpc({
     url: process.env.WEB3_HTTP,
