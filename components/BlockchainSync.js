@@ -101,6 +101,33 @@ class BlockchainSync {
        .on("error", console.error);
   }
 
+  addPremine2(){
+    let blockPromises = []
+    let preminers = []
+    blockPromises.push(web3.eth.getBlock(1), web3.eth.getBlock(2), web3.eth.getBlock(3))
+    Promise.all(blockPromises)
+      .then(blocks => {
+        for(let i=0; i<blocks.length; i++) {
+          const validators = blocks[i].validators
+          for(let y=0 y<validators.length; y++) {
+            if(!preminers.include(validators[y])) preminers.push(validators[y]);
+          }
+        }
+        preminers.forEach((address) => {
+          web3.eth.getBalance(address)
+            .then(balance => {
+              const blockNumber = 1
+              const transactions = []
+              const balance = balance
+              const type = 2
+              Address.create({address, blockNumber, transactions, balance, type})
+                .then(console.log("Created Premine Balance: ", balance, address))
+            })
+        })
+      })
+
+  }
+
   addPremine(){
     web3.eth.getBlock(2)
       .then(block => {
