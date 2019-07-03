@@ -109,7 +109,7 @@ class BlockchainSync {
       .then(blocks => {
         for(let i=0; i<blocks.length; i++) {
           const validators = blocks[i].validators
-          for(let y=0 y<validators.length; y++) {
+          for(let y=0; y<validators.length; y++) {
             if(!preminers.include(validators[y])) preminers.push(validators[y]);
           }
         }
