@@ -7,6 +7,9 @@ const Transaction = require('../models/Transaction')
 const Address = require('../models/Address')
 const BlockchainSync = require('../components/BlockchainSync')
 const blockchainSync = new BlockchainSync()
+const Nodes = require('../components/Nodes')
+const nodes = new Nodes()
+
 const Web3 = require('web3')
 const web3 = new Web3(new Web3.providers.HttpProvider(process.env.WEB3_HTTP));
 const validUnits = ["noether","wei","kwei","Kwei","babbage","femtoether","mwei","Mwei","lovelace","picoether","gwei","Gwei","shannon","nanoether","nano","szabo","microether","micro","finney","milliether","milli","ether","kether","grand","mether","gether","tethe"]
@@ -41,6 +44,34 @@ router.get('/contractCount', (request, response) => {
         data: results.length
       })
     })
+})
+
+
+router.get('/rawNodes', (request, response) => {
+  response.status(200).send({
+    success: true,
+    timestamp: Date.now(),
+    data: nodes.rawNodes
+  })
+})
+
+
+router.get('/getNodeCount', (request, response) => {
+  response.status(200).send({
+    success: true,
+    timestamp: Date.now(),
+    data: nodes.getNodeCount
+  })
+})
+
+
+
+router.get('/nodeMap', (request, response) => {
+  response.status(200).send({
+    success: true,
+    timestamp: Date.now(),
+    data: nodes.map
+  })
 })
 
 router.get('/nodes', (request, response) => {
