@@ -17,10 +17,13 @@ class Nodes {
     var hosts = this.hosts;
 
     var frequency = 1000; //1 second
-
+    
     hosts.forEach(function (host) {
         ping.promise.probe(host)
             .then(function (res) {
+                const alive = res.alive
+                const ping = res.avg
+
                 console.log(res);
             });
     });
