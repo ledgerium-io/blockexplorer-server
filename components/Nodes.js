@@ -7,26 +7,27 @@ const ping = require('ping')
 class Nodes {
   constructor() {
       this.rawNodes = []
-      this.nodeList = []
       this.hosts = []
       this.map = []
+      this.nodeList = {}
+      this.pingInterval = 5000
       this.compileNodeList()
   }
 
   pingNodes() {
-    var hosts = this.hosts;
+    const self = this
+    const hosts = this.nodeList;
 
-    var frequency = 1000; //1 second
-    
-    hosts.forEach(function (host) {
-        ping.promise.probe(host)
+    setInterval(()=> {
+      Object.keys(hosts).forEach((key) => {
+        ping.promise.probe(hosts[key].ip)
             .then(function (res) {
-                const alive = res.alive
-                const ping = res.avg
-
-                console.log(res);
+                self.nodeList[key].online = res.alive
+                self.nodeList[key].lastSeen = Date.now()
+                self.nodeList[key].latency = res.avg
             });
-    });
+      })
+    },this.pingInterval)
   }
 
   getNodeCount() {
@@ -40,11 +41,45 @@ class Nodes {
       .then(data => {
         this.rawNodes = [...data[0], data[1]]
         for(let i=0; i<data[0].length; i++) {
+          const id = data[0][i].id
+          const nodeName = data[0][i].name
+          const ip = data[0][i].network.remoteAddress.split(':')[0]
+          const difficulty = data[0][i].protocols.istanbul.difficulty
+          this.nodeList[id] = {
+            id,
+            name: nodeName,
+            ip,
+            online: true,
+            latency: 0,
+            difficulty,
+            firstSeen: Date.now(),
+            lastSeen: Date.now(),
+            lastBlock: 0,
+            lastBlockSeen: Date.now(),
+            peers: 0
+          }
           this.map.push({
             ip: data[0][i].network.remoteAddress.split(':')[0],
             location: geoip.lookup(data[0][i].network.remoteAddress.split(':')[0])
           })
           this.hosts.push(data[0][i].network.remoteAddress.split(':')[0])
+        }
+        const id = data[1].id
+        const nodeName = data[1].name
+        const ip = process.env.WEB3_HTTP.split('//')[1].split(':')[0]
+        const difficulty = data[1].protocols.istanbul.difficulty
+        this.nodeList[id] = {
+          id,
+          name: nodeName,
+          ip,
+          online: true,
+          latency: 0,
+          difficulty,
+          firstSeen: Date.now(),
+          lastSeen: Date.now(),
+          lastBlock: 0,
+          lastBlockSeen: Date.now(),
+          peers: 0
         }
         this.map.push({
           ip: process.env.WEB3_HTTP.split('//')[1].split(':')[0],
