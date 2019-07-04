@@ -55,6 +55,14 @@ router.get('/rawNodes', (request, response) => {
   })
 })
 
+router.get('/nodelist', (request, response) => {
+  response.status(200).send({
+    success: true,
+    timestamp: Date.now(),
+    data: nodes.nodeList
+  })
+})
+
 
 router.get('/getNodeCount', (request, response) => {
   response.status(200).send({
