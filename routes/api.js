@@ -35,6 +35,14 @@ router.get('/limits', (request, response) => {
   })
 })
 
+router.get('/gasPrice', (request, response) => {
+  response.status(200).send({
+    success: true,
+    timestamp: Date.now(),
+    data: web3.eth.gasPrice
+  })
+})
+
 router.get('/contractCount', (request, response) => {
   Address.find({type: 1})
     .then(results => {
@@ -237,6 +245,26 @@ router.get('/latestBlock', (request, response) => {
         success: true,
         timestamp: Date.now(),
         data: block
+      })
+    })
+    .catch(error => {
+      returnError(response, error)
+    })
+})
+
+router.get('/blockReward', (request, response) => {
+  web3.eth.getBlock('latest')
+    .then(block => {
+      let reward
+      if(block.number < 6307200) {
+        reward = 3
+      } else if (block.number < (6307200*2)) {
+        reward = 2
+      }
+      response.status(200).send({
+        success: true,
+        timestamp: Date.now(),
+        data: reward
       })
     })
     .catch(error => {
