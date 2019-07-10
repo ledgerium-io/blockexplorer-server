@@ -30,7 +30,8 @@ router.get('/blockExplorer', (request, response) => {
     Transaction.find().sort({ _id: -1 }).limit(5),
     web3.eth.getBlock('latest'),
     Address.find({type: 1}),
-    web3.eth.net.getPeerCount()
+    web3.eth.net.getPeerCount(),
+    web3.eth.getGasPrice()
    ]
    Promise.all(promises)
       .then(data => {
@@ -40,9 +41,10 @@ router.get('/blockExplorer', (request, response) => {
           data: {
             blocks: data[0],
             transactions: data[1],
-            reward: calculateReward(data[3]),
-            contracts: data[4].length,
-            peers: data[5]+1
+            reward: calculateReward(data[2]),
+            contracts: data[3].length,
+            peers: data[4]+1,
+            gasPrice: data[5]
           }
         })
       })
