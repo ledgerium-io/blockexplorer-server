@@ -11,6 +11,15 @@ const express = require('express');
 const mongoose = require('mongoose');
 const app = express();
 const cors = require('cors');
+console.log(`${process.env.MONGO_HOST}`)
+console.log(`${process.env.MONGO_DB}`)
+console.log(`${process.env.REACT_APP_PORT}`)
+console.log(`${process.env.WEB3_HTTP}`)
+console.log(`${process.env.WEB3_WS}`)
+console.log(`${process.env.SYNC_REQUESTS}`)
+console.log(`${process.env.API_LIMIT_BLOCKS}`)
+console.log(`${process.env.API_LIMIT_TRANSACTIONS}`)
+
 const port = process.env.SERVER_PORT || 1337;
 const socket = require('socket.io');
 const server = app.listen(port, () => {

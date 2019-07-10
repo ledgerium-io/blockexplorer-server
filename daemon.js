@@ -6,6 +6,7 @@ if (cluster.isMaster) {
   console.log(`${chalk.green('[+] Ledgerium Block Explorer Daemon Cluster Manager initiated (PID: ' + process.pid)})`)
   clusterWorker = cluster.fork();
   cluster.on('exit', (worker, code, signal) => {
+    console.log(chalk.yellow('[+] worker' + worker + ' code' + code + ' signal' + signal + ')'))
     switch(code) {
       case 401:
         console.log(chalk.red('\n[X] Missing WEB3_HTTP in .env'))
