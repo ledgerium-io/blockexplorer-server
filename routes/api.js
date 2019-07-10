@@ -12,7 +12,46 @@ const nodes = new Nodes()
 
 const Web3 = require('web3')
 const web3 = new Web3(new Web3.providers.HttpProvider(process.env.WEB3_HTTP));
-const validUnits = ["noether","wei","kwei","Kwei","babbage","femtoether","mwei","Mwei","lovelace","picoether","gwei","Gwei","shannon","nanoether","nano","szabo","microether","micro","finney","milliether","milli","ether","kether","grand","mether","gether","tethe"]
+const validUnits = ["noether","wei","kwei","Kwei","babbage","femtoether","mwei","Mwei","lovelace","picoether","gwei","Gwei","shannon","nanoether","nano","szabo","microether","micro","finney","milliether","milli","xlg","kether","grand","mether","gether","tether"]
+
+function calculateReward(block) {
+  let reward
+  if(block.number < 6307200) {
+    reward = 3
+  } else if (block.number < (6307200*2)) {
+    reward = 2
+  }
+  return reward;
+}
+
+router.get('/blockExplorer', (request, response) => {
+  let promises = [
+    Block.find().sort({ _id: -1 }).limit(5),
+    Transaction.find().sort({ _id: -1 }).limit(5),
+    web3.eth.getBlock('latest'),
+    Address.find({type: 1}),
+    web3.eth.net.getPeerCount(),
+    web3.eth.getGasPrice()
+   ]
+   Promise.all(promises)
+      .then(data => {
+        response.status(200).send({
+          success: true,
+          timestamp: Date.now(),
+          data: {
+            blocks: data[0],
+            transactions: data[1],
+            reward: calculateReward(data[2]),
+            contracts: data[3].length,
+            peers: data[4]+1,
+            gasPrice: data[5]
+          }
+        })
+      })
+      .catch(error => {
+        returnError(response, error)
+      })
+})
 
 router.get('/limits', (request, response) => {
   response.status(200).send({
