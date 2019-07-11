@@ -24,6 +24,14 @@ function calculateReward(block) {
   return reward;
 }
 
+router.get('/ping', (request, response) => {
+  response.status(200).send({
+    success: true,
+    timestamp: Date.now(),
+    data: "pong"
+  })
+})
+
 router.get('/blockExplorer', (request, response) => {
   let promises = [
     Block.find().sort({ _id: -1 }).limit(5),
