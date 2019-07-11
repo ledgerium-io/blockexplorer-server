@@ -13,7 +13,6 @@ const app = express();
 const cors = require('cors');
 console.log(`${process.env.MONGO_HOST}`)
 console.log(`${process.env.MONGO_DB}`)
-console.log(`${process.env.REACT_APP_PORT}`)
 console.log(`${process.env.WEB3_HTTP}`)
 console.log(`${process.env.WEB3_WS}`)
 console.log(`${process.env.SYNC_REQUESTS}`)
