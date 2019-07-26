@@ -123,10 +123,17 @@ class BlockchainSync {
             for(let i=0; i<done.length; i++) {
               const address = preminers[i]
               const blockNumber = 1
-              const transactions = []
+              const transactions = [{
+                  blockHash: block[0].hash,
+                  blockNumber: block[0].number,
+                  timestamp: block[0].timestamp,
+                  from: "PREMINE",
+                  to: address,
+                  value: done[i]
+                }]
               const balance = done[i]
               const type = 2
-              Address.create({address, blockNumber, transactions, balance, type})
+              Address.create({address, blockNumber, transactions, type})
                 .then(console.log("Created Premine Balance: ", balance, address))
                 .catch(error => console.log)
             }
@@ -215,7 +222,6 @@ class BlockchainSync {
     Address.findOne({address})
       .then(doc => {
         if(!doc) return;
-        doc.balance += value
         doc.blockNumber = tx.blockNumber
         doc.transactions.push(tx)
         doc.save()
@@ -256,12 +262,12 @@ parseTransactionQue() {
                 .then(contract => {
                   if(contract) {
                     const type = 1
-                    Address.create({address, balance, transactions, blockNumber, type})
+                    Address.create({address, transactions, blockNumber, type})
                       .then(resolve(true))
                       .catch(reject({}))
                   } else {
                     const type = 0
-                    Address.create({address, balance, transactions, blockNumber, type})
+                    Address.create({address, transactions, blockNumber, type})
                     .then(resolve(true))
                     .catch(reject({}))
                   }
@@ -335,7 +341,6 @@ parseTransactionQue() {
       for(let i=0; i<blocks.length; i++) {
         if(miners[blocks[i].miner]) {
           miners[blocks[i].miner].blockNumber = blocks[i].number
-          miners[blocks[i].miner].balance += +process.env.MINER_BLOCK_REWARD
           miners[blocks[i].miner].transactions.push({
             blockHash: blocks[i].hash,
             blockNumber: blocks[i].number,
@@ -356,7 +361,6 @@ parseTransactionQue() {
               to: blocks[i].miner,
               value: +process.env.MINER_BLOCK_REWARD
             }],
-            balance: +process.env.MINER_BLOCK_REWARD,
             type: 3
           }
         }
@@ -379,12 +383,11 @@ parseTransactionQue() {
               const transactions = miners[miner].transactions
               const balance = miners[miner].balance
               const type = miners[miner].type
-              promises2.push(Address.create({address, blockNumber, transactions, balance, type}))
+              promises2.push(Address.create({address, blockNumber, transactions, type}))
             } else {
               const miner = account.address;
               account.blockNumber = miners[miner].blockNumber
               account.transactions = miners[miner].transactions
-              account.balance += miners[miner].balance
               account.type = 3
               promises2.push(this.saveMinerUpdates(account))
             }
