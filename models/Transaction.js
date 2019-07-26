@@ -15,7 +15,7 @@ const transactionSchema = new Schema({
      to: String,
      transactionIndex: Number,
      v: String,
-     value: Number
+     value: String
 });
 
 module.exports = mongoose.model('Transaction', transactionSchema);
