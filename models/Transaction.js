@@ -6,7 +6,7 @@ const transactionSchema = new Schema({
      blockNumber: Number,
      from: String,
      gas: Number,
-     gasPrice: Number,
+     gasPrice: String,
      hash: { type: String, index: { unique: true } },
      input: String,
      nonce: Number,
