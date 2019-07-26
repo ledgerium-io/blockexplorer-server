@@ -101,42 +101,20 @@ class BlockchainSync {
        .on("error", console.error);
   }
 
-  addPremine2(){
-    let blockPromises = []
-    let preminers = []
-    blockPromises.push(web3.eth.getBlock(1), web3.eth.getBlock(2), web3.eth.getBlock(3))
-    Promise.all(blockPromises)
-      .then(blocks => {
-        for(let i=0; i<blocks.length; i++) {
-          const validators = blocks[i].validators
-          for(let y=0; y<validators.length; y++) {
-            if(!preminers.include(validators[y])) preminers.push(validators[y]);
-          }
-        }
-        preminers.forEach((address) => {
-          web3.eth.getBalance(address)
-            .then(balance => {
-              const blockNumber = 1
-              const transactions = []
-              const balance = balance
-              const type = 2
-              Address.create({address, blockNumber, transactions, balance, type})
-                .then(console.log("Created Premine Balance: ", balance, address))
-            })
-        })
-      })
-
-  }
-
   addPremine(){
-    web3.eth.getBlock(2)
+    Promise.all([web3.eth.getBlock(1), web3.eth.getBlock(2)])
       .then(block => {
         let preminers = []
         let promises = []
-        preminers.push(block.miner)
-        for(let i=0; i<block.validators.length; i++) {
-          preminers.push(block.validators[i])
+        preminers.push(web3.utils.toChecksumAddress(block[0].miner), web3.utils.toChecksumAddress(block[1].miner))
+        for(let i=0; i<block[0].validators.length; i++) {
+          preminers.push(web3.utils.toChecksumAddress(block[0].validators[i]))
         }
+        for(let i=0; i<block[1].validators.length; i++) {
+          preminers.push(web3.utils.toChecksumAddress(block[1].validators[i]))
+        }
+        let uniquePreminers = new Set(preminers)
+        preminers = [...uniquePreminers]
         for(let i=0; i<preminers.length; i++) {
           promises.push(web3.eth.getBalance(preminers[i]))
         }
@@ -150,6 +128,7 @@ class BlockchainSync {
               const type = 2
               Address.create({address, blockNumber, transactions, balance, type})
                 .then(console.log("Created Premine Balance: ", balance, address))
+                .catch(error => console.log)
             }
           })
       })
@@ -195,17 +174,6 @@ class BlockchainSync {
     })
   }
 
-  addAddress(address, blockNumber, transactions = [], balance = 0, type = 0) {
-    return new Promise((resolve, reject) => {
-      Address.create({address, blockNumber, transactions, balance, type})
-        .then(newAddress => {
-          resolve(newAddress)
-        })
-        .catch(error => {
-          reject(error)
-        })
-    })
-  }
 
   isValidAddress(address) {
     return new Promise((resolve, reject) => {
@@ -215,6 +183,7 @@ class BlockchainSync {
 
   addressExists(address) {
     return new Promise((resolve, reject) => {
+      adress = web3.utils.toChecksumAddress(address)
       Address.findOne({address})
         .then(doc => {
           if(!doc) {
@@ -273,6 +242,8 @@ parseTransactionQue() {
         if(!tx) return reject({})
         if (tx.value <= 0 && tx.gasPrice <= 0 ) return reject({});
         const {from, to, value, blockNumber} = tx
+        to = web3.utils.toChecksumAddress(to)
+        from = web3.utils.toChecksumAddress(from)
         const fromValue = value * -1
         this.changeAddressBalance(from, fromValue, tx)
         this.addressExists(to)
@@ -391,7 +362,7 @@ parseTransactionQue() {
         }
       }
       Object.keys(miners).forEach((miner) => {
-        const address = miners[miner].address
+        const address = web3.utils.toChecksumAddress(miners[miner].address)
         minerArray.push(miners[miner].address)
         promises.push(Address.findOne({address}))
       })
@@ -403,7 +374,7 @@ parseTransactionQue() {
             const account = data[i]
             if(!account) {
               const miner = minerArray[i];
-              const address = miner
+              const address = web3.utils.toChecksumAddress(miner)
               const blockNumber = miners[miner].blockNumber
               const transactions = miners[miner].transactions
               const balance = miners[miner].balance
