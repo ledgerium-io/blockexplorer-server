@@ -52,7 +52,7 @@ router.get('/blockExplorer', (request, response) => {
             reward: calculateReward(data[2]),
             contracts: data[3].length,
             peers: data[4]+1,
-            gasPrice: data[5]
+            gasPrice: web3.utils.fromWei(data[5], 'Gwei')
           }
         })
       })
@@ -174,6 +174,7 @@ router.get('/peers', (request, response) => {
 
 router.get('/balance/:address', (request, response) => {
   const {address, unit} = request.params
+  address = web3.utils.toChecksumAddress(address)
   web3.eth.getBalance(address)
     .then(balance => {
       console.log(balance)
@@ -253,6 +254,7 @@ router.get('/tx/:hash', (request, response) => {
 })
 
 router.get('/address/:address', (request, response) => {
+  address = web3.utils.toChecksumAddress(address)
   const {address} = request.params
   Address.findOne({address})
     .then(address => {
