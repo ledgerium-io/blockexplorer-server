@@ -254,16 +254,21 @@ router.get('/tx/:hash', (request, response) => {
 })
 
 router.get('/address/:address', (request, response) => {
+  let {address} = request.params
   address = web3.utils.toChecksumAddress(address)
-  const {address} = request.params
   Address.findOne({address})
     .then(address => {
       if(!address) throw 'Address not found'
-      response.status(200).send({
-        success: true,
-        timestamp: Date.now(),
-        data: address
-      })
+      web3.eth.getBalance(address.address)
+        .then( balance => {
+          address.balance = web3.utils.fromWei(balance, 'ether')
+          response.status(200).send({
+            success: true,
+            timestamp: Date.now(),
+            data: address,
+          })
+        })
+        .catch(error => console.log('Error'))
     })
     .catch(error => {
       returnError(response, error)
