@@ -266,6 +266,7 @@ parseTransactionQue() {
                       .then(resolve(true))
                       .catch(reject({}))
                   } else {
+                    console.log('create contract please')
                     const type = 0
                     Address.create({address, transactions, blockNumber, type})
                     .then(resolve(true))
