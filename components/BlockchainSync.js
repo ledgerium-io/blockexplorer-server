@@ -318,61 +318,65 @@ class BlockchainSync {
   processTransaction(tx) {
     return new Promise((resolve, reject) => {
       if(!tx) return reject('No Transaction');
-      if(!tx.to) return reject('No transaction: to');
       if(tx.value <= 0 && tx.gasPrice <= 0) return reject({});
-      const { value, blockNumber } = tx
-      const to = tx.to ? web3.utils.toChecksumAddress(tx.to) : null
-      const address = to
-      this.addressExists(to)
-        .then(exists => {
-          if(!exists) {
-            const transactions = [tx]
-            const address = to
-            this.isContract(address)
-              .then(contract => {
-                if(!contract) {
-                  const type = 0
-                  web3.eth.getBalance(address)
-                    .then(balance => {
-                      Address.create({address, balance, transactions, blockNumber, type})
-                      this.addTransactionFrom(tx)
-                        .then(()=>{
-                          resolve()
-                        })
-                    })
-                } else {
-                  const type = 1
-                  web3.eth.getBalance(address)
-                    .then(balance => {
-                      Address.create({address, balance, transactions, blockNumber, type})
-                      this.addTransactionFrom(tx)
-                        .then(()=>{
-                          resolve()
-                        })
-                    })
-                }
-              })
-          } else {
-            Address.findOne({address})
-              .then(account => {
-                if(!account) return reject('Address was not found');
-                account.balance += value
-                account.blockNumber = tx.blockNumber
-                account.transactions.push(tx)
-                account.markModified('transactions')
-                account.save()
-                this.addTransactionFrom(tx)
+      if(!tx.to) {
+        this.addTransactionFrom(tx)
+          .then(()=>{
+            resolve()
+          })
+      }  else {
+        const { value, blockNumber } = tx
+        const to = tx.to ? web3.utils.toChecksumAddress(tx.to) : null
+        const address = to
+        this.addressExists(to)
+          .then(exists => {
+            if(!exists) {
+              const transactions = [tx]
+              const address = to
+              this.isContract(address)
+                .then(contract => {
+                  if(!contract) {
+                    const type = 0
+                    web3.eth.getBalance(address)
+                      .then(balance => {
+                        Address.create({address, balance, transactions, blockNumber, type})
+                        this.addTransactionFrom(tx)
+                          .then(()=>{
+                            resolve()
+                          })
+                      })
+                  } else {
+                    const type = 1
+                    web3.eth.getBalance(address)
+                      .then(balance => {
+                        Address.create({address, balance, transactions, blockNumber, type})
+                        this.addTransactionFrom(tx)
+                          .then(()=>{
+                            resolve()
+                          })
+                      })
+                  }
+                })
+            } else {
+              Address.findOne({address})
+                .then(account => {
+                  if(!account) return reject('Address was not found');
+                  account.balance += value
+                  account.blockNumber = tx.blockNumber
+                  account.transactions.push(tx)
+                  account.markModified('transactions')
+                  account.save()
+                  this.addTransactionFrom(tx)
 
-                resolve({})
-              })
-          }
-        })
-        .catch(error => {
-          reject(error)
-        })
-
+                  resolve({})
+                })
+            }
+          })
+          .catch(error => {
+            reject(error)
+          })
+      }
     })
-
   }
 
 
