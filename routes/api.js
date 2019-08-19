@@ -52,7 +52,7 @@ router.get('/blockExplorer', (request, response) => {
             reward: calculateReward(data[2]),
             contracts: data[3].length,
             peers: data[4]+1,
-            gasPrice: data[5]
+            gasPrice: web3.utils.fromWei(data[5], 'Gwei')
           }
         })
       })
@@ -174,6 +174,7 @@ router.get('/peers', (request, response) => {
 
 router.get('/balance/:address', (request, response) => {
   const {address, unit} = request.params
+  address = web3.utils.toChecksumAddress(address)
   web3.eth.getBalance(address)
     .then(balance => {
       console.log(balance)
@@ -253,15 +254,21 @@ router.get('/tx/:hash', (request, response) => {
 })
 
 router.get('/address/:address', (request, response) => {
-  const {address} = request.params
+  let {address} = request.params
+  address = web3.utils.toChecksumAddress(address)
   Address.findOne({address})
     .then(address => {
       if(!address) throw 'Address not found'
-      response.status(200).send({
-        success: true,
-        timestamp: Date.now(),
-        data: address
-      })
+      web3.eth.getBalance(address.address)
+        .then( balance => {
+          address.balance = web3.utils.fromWei(balance, 'ether')
+          response.status(200).send({
+            success: true,
+            timestamp: Date.now(),
+            data: address,
+          })
+        })
+        .catch(error => console.log('Error'))
     })
     .catch(error => {
       returnError(response, error)
