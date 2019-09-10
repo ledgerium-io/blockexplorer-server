@@ -101,6 +101,17 @@ router.get('/contractCount', (request, response) => {
     })
 })
 
+router.get('/contracts', (request, response) => {
+  Address.find({type: 1})
+    .then(results => {
+      response.status(200).send({
+        success: true,
+        timestamp: Date.now(),
+        data: results
+      })
+    })
+})
+
 
 router.get('/rawNodes', (request, response) => {
   response.status(200).send({
