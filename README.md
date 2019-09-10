@@ -6,7 +6,7 @@ An Ethereum and Quorum private blockchain explorer
 
 ### Download and install dependencies
 
-`git clone https://github.com/SkyTradeInc/quorumblockexporer.git`
+`git clone https://github.com/ledgerium/blockexplorer-server.git`
 
 `cd quorumblockexporer`
 
