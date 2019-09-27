@@ -79,7 +79,6 @@ class BlockchainSync {
       .on("data", function(blockHeader){
         web3.eth.getBlock(blockHeader.number)
           .then(block => {
-            io.emit('newBlockHeaders', block)
             self.addAverageTime(Date.now()-self.lastBlockTime)
             self.lastBlockTime = Date.now()
             if(self.syncing) return
@@ -97,17 +96,17 @@ class BlockchainSync {
        })
       .on("error", console.error);
 
-    const transactionListener = web3WS.eth.subscribe('pendingTransactions', function(error, result){
-      if (error) return console.log(error)
-    })
-      .on("data", function(transaction){
-        web3.eth.getTransaction(transaction)
-          .then(tx => {
-            io.emit('pendingTransaction', tx)
-          })
-          .catch(console.log)
-       })
-       .on("error", console.error);
+    // const transactionListener = web3WS.eth.subscribe('pendingTransactions', function(error, result){
+    //   if (error) return console.log(error)
+    // })
+    //   .on("data", function(transaction){
+    //     web3.eth.getTransaction(transaction)
+    //       .then(tx => {
+    //         io.emit('pendingTransaction', tx)
+    //       })
+    //       .catch(console.log)
+    //    })
+    //    .on("error", console.error);
   }
 
 
@@ -386,11 +385,11 @@ class BlockchainSync {
 
 
   parseTransactions(transactions) {
-    console.log('creating tx n that')
     let promises = []
     for(let i=0; i<transactions.length; i++) {
       this.getTransactionDetails(transactions[i])
         .then(tx => {
+          io.emit('pendingTransaction', tx)
           Transaction.create(tx)
             .then(savedTx => {
               if(!savedTx) return;
@@ -402,7 +401,7 @@ class BlockchainSync {
   }
 
   parseBlock(block) {
-    console.log('parsing block')
+    io.emit('newBlockHeaders', block)
     this.currentMiner = block.miner
     if(block.transactions.length > 0) {
       this.parseTransactions(block.transactions)
