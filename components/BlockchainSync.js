@@ -64,6 +64,7 @@ class BlockchainSync {
 
   emitter() {
     setInterval(() => {
+      io.emit('syncStatus', this.syncing)
       io.emit('averageBlockTime', this.averageBlockTime)
     },1000)
   }
