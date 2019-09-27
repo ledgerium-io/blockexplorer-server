@@ -85,8 +85,8 @@ class BlockchainSync {
             if(self.syncing) return
             if( block.number >= self.latestBlock) {
               Block.create(block)
-                .then(()=> {
-                  this.parseBlock(block)
+                .then( () => {
+                  self.parseBlock(block)
                   self.lastBlockProcessed = block.number
                 })
                 .catch(()=>{
@@ -101,7 +101,11 @@ class BlockchainSync {
       if (error) return console.log(error)
     })
       .on("data", function(transaction){
-        io.emit('pendingTransaction', transaction)
+        web3.eth.getTransaction(transaction)
+          .then(tx => {
+            io.emit('pendingTransaction', tx)
+          })
+          .catch(console.log)
        })
        .on("error", console.error);
   }
@@ -382,6 +386,7 @@ class BlockchainSync {
 
 
   parseTransactions(transactions) {
+    console.log('creating tx n that')
     let promises = []
     for(let i=0; i<transactions.length; i++) {
       this.getTransactionDetails(transactions[i])
@@ -391,11 +396,13 @@ class BlockchainSync {
               if(!savedTx) return;
               transactionProcessor.addTransactionProcessQue(savedTx)
             })
+            .catch(console.log)
         })
     }
   }
 
   parseBlock(block) {
+    console.log('parsing block')
     this.currentMiner = block.miner
     if(block.transactions.length > 0) {
       this.parseTransactions(block.transactions)
