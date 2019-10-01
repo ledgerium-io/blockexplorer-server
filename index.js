@@ -13,7 +13,7 @@ const app = express();
 const cors = require('cors');
 
 const port = process.env.SERVER_PORT || 1337;
-const socket = require('socket.io', {path: '/blockexplorersvc/socket.io'});
+const socket = require('socket.io');
 const server = app.listen(port, () => {
  const io = module.exports = socket(server);
  console.log(chalk.green(`[+] Listening on port: ${port}`))
