@@ -41,7 +41,7 @@ class Nodes {
         avgTransactions: this.avgTransactions,
         maxTransactions: this.maxTransactions,
       }
-      console.log(payload)
+      //console.log(payload)
       io.emit('blockStats', payload)
     },1000)
   }
@@ -107,7 +107,7 @@ class Nodes {
     const self = this
 
     io.on('connect', (socket) => {
-      console.log('[+] User connected')
+      // console.log('[+] User connected')
 
       socket.on('isAlive', (id) => {
         if(self.nodeList[id]) {
@@ -144,7 +144,7 @@ class Nodes {
           node.lastSeen               = Date.now()
           // console.log(self.nodeList[data.id])
         } else {
-          console.log('[+] Registering new node:', data.name)
+          //console.log('[+] Registering new node:', data.name)
           const ping = Date.now() - data.timestamp;
           self.nodeList[data.id] = {
             id: data.id,
