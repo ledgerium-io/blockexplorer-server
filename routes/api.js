@@ -10,6 +10,9 @@ const blockchainSync = new BlockchainSync()
 const Nodes = require('../components/Nodes')
 const nodes = new Nodes()
 
+const NodeNew = require('../components/NodeNew')
+const nodeNew = new NodeNew()
+
 const Web3 = require('web3')
 const web3 = new Web3(new Web3.providers.HttpProvider(process.env.WEB3_HTTP));
 const validUnits = ["noether","wei","kwei","Kwei","babbage","femtoether","mwei","Mwei","lovelace","picoether","gwei","Gwei","shannon","nanoether","nano","szabo","microether","micro","finney","milliether","milli","xlg","kether","grand","mether","gether","tether"]
