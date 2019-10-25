@@ -19,10 +19,24 @@ class Nodes {
     this.init()
   }
 
+
+
   init() {
     this.listen()
     this.pingClients()
     this.emitNodes()
+    this.garbageCollection()
+  }
+
+  garbageCollection() {
+    const self = this
+    setInterval(()=>{
+      Object.keys(this.nodeList).forEach( id => {
+        if( (self.nodeList[id].lastSeen + 14400000) > Date.now() {
+          delete self.nodeList[id]
+        }
+      });
+    },14400000)
   }
 
   emitNodes() {
@@ -58,16 +72,17 @@ class Nodes {
   }
 
   findMinMax(arr, key) {
-  let min = arr[0][key], max = arr[0][key];
+    let min = arr[0][key], max = arr[0][key];
 
-  for (let i = 0; i<arr.length; i++) {
-    let v = arr[i][key];
-    min = (v < min) ? v : min;
-    max = (v > max) ? v : max;
+    for (let i = 0; i<arr.length; i++) {
+      let v = arr[i][key];
+      min = (v < min) ? v : min;
+      max = (v > max) ? v : max;
+    }
+
+    return {min, max};
   }
 
-  return {min, max};
-}
   addTransactions(blockNumber, transactions) {
     this.transactionHistory.push({
       blockNumber,
