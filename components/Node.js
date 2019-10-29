@@ -78,7 +78,7 @@ class Node {
       })
       .catch(console.log)
 
-    const blockListener = this.web3_ws.eth.subscribe('newBlockHeaders', function(error, result){
+    this.web3_ws.eth.subscribe('newBlockHeaders', function(error){
         if (error) return console.log(error);
       })
       .on("data", function(blockHeader){
@@ -133,5 +133,3 @@ class Node {
 }
 
 module.exports = Node
-
-const node = new Node('http://138.197.193.201:8545/', 'ws://138.197.193.201:9000/')

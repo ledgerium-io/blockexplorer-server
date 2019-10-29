@@ -1,68 +1,102 @@
-const dotenv = require('dotenv').config()
 const express = require('express');
-const rpc = require('request')
+const rpc = require('request');
+const Web3 = require('web3');
+const Block = require('../models/Block');
+const Transaction = require('../models/Transaction');
+const Address = require('../models/Address');
+const BlockchainSync = require('../components/BlockchainSync');
+const NodeNew = require('../components/NodeNew');
+const Nodes = require('../components/Nodes');
+
 const router = express.Router();
-const Block = require('../models/Block')
-const Transaction = require('../models/Transaction')
-const Address = require('../models/Address')
-const BlockchainSync = require('../components/BlockchainSync')
-const blockchainSync = new BlockchainSync()
-const Nodes = require('../components/Nodes')
-const nodes = new Nodes()
-
-const NodeNew = require('../components/NodeNew')
-const nodeNew = new NodeNew()
-
-const Web3 = require('web3')
+const nodes = new Nodes();
 const web3 = new Web3(new Web3.providers.HttpProvider(process.env.WEB3_HTTP));
-const validUnits = ["noether","wei","kwei","Kwei","babbage","femtoether","mwei","Mwei","lovelace","picoether","gwei","Gwei","shannon","nanoether","nano","szabo","microether","micro","finney","milliether","milli","xlg","kether","grand","mether","gether","tether"]
+new NodeNew();
+new BlockchainSync();
 
-function calculateReward(block) {
-  let reward
-  if(block.number < 6307200) {
-    reward = 3
-  } else if (block.number < (6307200*2)) {
-    reward = 2
+const validUnits = [
+  'noether',
+  'wei',
+  'kwei',
+  'Kwei',
+  'babbage',
+  'femtoether',
+  'mwei', 'Mwei',
+  'lovelace',
+  'picoether',
+  'gwei',
+  'Gwei',
+  'shannon',
+  'nanoether',
+  'nano',
+  'szabo',
+  'microether',
+  'micro',
+  'finney',
+  'milliether',
+  'milli',
+  'ether',
+  'kether',
+  'grand',
+  'mether',
+  'gether',
+  'tether',
+];
+
+const calculateReward = (block) => {
+  let reward;
+  if (block.number < 6307200) {
+    reward = 3;
+  } else if (block.number < (6307200 * 2)) {
+    reward = 2;
   }
   return reward;
-}
+};
+
+const returnError = (response, message) => {
+  response.status(400).send({
+    success: false,
+    timestamp: Date.now(),
+    data: message,
+  });
+};
 
 router.get('/ping', (request, response) => {
   response.status(200).send({
     success: true,
     timestamp: Date.now(),
-    data: "pong"
-  })
-})
+    data: 'pong',
+  });
+});
 
 router.get('/blockExplorer', (request, response) => {
-  let promises = [
+  const promises = [
     Block.find().sort({ _id: -1 }).limit(5),
     Transaction.find().sort({ _id: -1 }).limit(5),
     web3.eth.getBlock('latest'),
-    Address.find({type: 1}),
+    Address.find({ type: 1 }),
     web3.eth.net.getPeerCount(),
-    web3.eth.getGasPrice()
-   ]
-   Promise.all(promises)
-      .then(data => {
-        response.status(200).send({
-          success: true,
-          timestamp: Date.now(),
-          data: {
-            blocks: data[0],
-            transactions: data[1],
-            reward: calculateReward(data[2]),
-            contracts: data[3].length,
-            peers: data[4]+1,
-            gasPrice: web3.utils.fromWei(data[5], 'Gwei')
-          }
-        })
-      })
-      .catch(error => {
-        returnError(response, error)
-      })
-})
+    web3.eth.getGasPrice(),
+  ];
+  Promise.all(promises)
+    .then((data) => {
+      response.status(200).send({
+        success: true,
+        timestamp: Date.now(),
+        data: {
+          blocks: data[0],
+          transactions: data[1],
+          reward: calculateReward(data[2]),
+          contracts: data[3].length,
+          peers: data[4] + 1,
+          gasPrice: web3.utils.fromWei(data[5], 'Gwei'),
+        },
+      });
+    })
+    .catch((error) => {
+      returnError(response, error);
+    });
+});
 
 router.get('/limits', (request, response) => {
   response.status(200).send({
@@ -72,84 +106,82 @@ router.get('/limits', (request, response) => {
       paths: [
         {
           path: '/api/latestTransactions/:limit',
-          limit: parseInt(process.env.API_LIMIT_TRANSACTIONS) || 100,
-          default: 1
+          limit: parseInt(process.env.API_LIMIT_TRANSACTIONS, 10) || 100,
+          default: 1,
         },
         {
           path: '/api/latestBlocks/:limit',
-          limit: parseInt(process.env.API_LIMIT_Blocks) || 25,
-          default: 1
-        }
-      ]
-    }
-  })
-})
+          limit: parseInt(process.env.API_LIMIT_Blocks, 10) || 25,
+          default: 1,
+        },
+      ],
+    },
+  });
+});
 
 router.get('/gasPrice', (request, response) => {
   response.status(200).send({
     success: true,
     timestamp: Date.now(),
-    data: web3.eth.gasPrice
-  })
-})
+    data: web3.eth.gasPrice,
+  });
+});
 
 router.get('/contractCount', (request, response) => {
-  Address.find({type: 1})
-    .then(results => {
+  Address.find({ type: 1 })
+    .then((results) => {
       response.status(200).send({
         success: true,
         timestamp: Date.now(),
-        data: results.length
-      })
-    })
-})
+        data: results.length,
+      });
+    });
+});
 
 router.get('/contracts', (request, response) => {
-  Address.find({type: 1})
-    .then(results => {
+  Address.find({ type: 1 })
+    .then((results) => {
       response.status(200).send({
         success: true,
         timestamp: Date.now(),
-        data: results
-      })
-    })
-})
+        data: results,
+      });
+    });
+});
 
 
 router.get('/rawNodes', (request, response) => {
   response.status(200).send({
     success: true,
     timestamp: Date.now(),
-    data: nodes.rawNodes
-  })
-})
+    data: nodes.rawNodes,
+  });
+});
 
 router.get('/nodelist', (request, response) => {
   response.status(200).send({
     success: true,
     timestamp: Date.now(),
-    data: nodes.nodeList
-  })
-})
+    data: nodes.nodeList,
+  });
+});
 
 
 router.get('/getNodeCount', (request, response) => {
   response.status(200).send({
     success: true,
     timestamp: Date.now(),
-    data: nodes.getNodeCount
-  })
-})
-
-
+    data: nodes.getNodeCount,
+  });
+});
 
 router.get('/nodeMap', (request, response) => {
   response.status(200).send({
     success: true,
     timestamp: Date.now(),
-    data: nodes.map
-  })
-})
+    data: nodes.map,
+  });
+});
 
 router.get('/nodes', (request, response) => {
   rpc({
@@ -159,211 +191,207 @@ router.get('/nodes', (request, response) => {
       jsonrpc: '2.0',
       method: 'admin_peers',
       params: [],
-      id: new Date().getTime()
+      id: new Date().getTime(),
     },
   }, (error, result) => {
-      if(error) returnError(response, error)
-      response.status(200).send({
-          success: true,
-          timestamp: Date.now(),
-          data: result.body.result
-        })
-  })
-})
+    if (error) returnError(response, error);
+    response.status(200).send({
+      success: true,
+      timestamp: Date.now(),
+      data: result.body.result,
+    });
+  });
+});
 
 
 router.get('/peers', (request, response) => {
   web3.eth.net.getPeerCount()
-    .then(peerCount => {
+    .then((peerCount) => {
       response.status(200).send({
         success: true,
         timestamp: Date.now(),
-        data: peerCount+1
-      })
+        data: peerCount + 1,
+      });
     })
-    .catch(error => {
-      returnError(response, error)
-    })
-})
+    .catch((error) => {
+      returnError(response, error);
+    });
+});
 
 router.get('/balance/:address', (request, response) => {
-  const {address, unit} = request.params
-  address = web3.utils.toChecksumAddress(address)
+  const { unit } = request.params;
+  let { address } = request.params;
+  address = web3.utils.toChecksumAddress(address);
   web3.eth.getBalance(address)
-    .then(balance => {
-      console.log(balance)
-      if(unit && validUnits.include(unit)) {
-        balance = web3.utils.fromWei(balance, unit)
+    .then((balance) => {
+      if (unit && validUnits.include(unit)) {
+        balance = web3.utils.fromWei(balance, unit);
       }
       response.status(200).send({
         success: true,
         timestamp: Date.now(),
-        data: balance
-      })
+        data: balance,
+      });
     })
-    .catch(error =>{
-      console.log(error)
-      returnError(response, error)
-    })
-})
+    .catch((error) => {
+      console.log(error);
+      returnError(response, error);
+    });
+});
 
 router.get('/block/:number', (request, response) => {
-  const {number} = request.params
-  Block.findOne({number})
-    .then(block => {
-      if(!block) throw 'Block not found'
+  const { number } = request.params;
+  Block.findOne({ number })
+    .then((block) => {
+      if (!block) throw 'Block not found';
       response.status(200).send({
         success: true,
         timestamp: Date.now(),
-        data: block
-      })
+        data: block,
+      });
     })
-    .catch(error => {
-      returnError(response, error)
-    })
-})
+    .catch((error) => {
+      returnError(response, error);
+    });
+});
 
 router.get('/blocks', (request, response) => {
   Block.find().sort({ _id: -1 }).limit(100)
-    .then(data => {
+    .then((data) => {
       return response.status(200).send({
         success: true,
         timestamp: Date.now(),
-        data
-      })
+        data,
+      });
     })
-    .catch(error => {
-      return returnError(response, error)
-    })
-})
+    .catch((error) => {
+      return returnError(response, error);
+    });
+});
 
 router.get('/transactions', (request, response) => {
   Transaction.find().sort({ _id: -1 }).limit(100)
-  .then(data => {
-    return response.status(200).send({
-      success: true,
-      timestamp: Date.now(),
-      data
+    .then((data) => {
+      return response.status(200).send({
+        success: true,
+        timestamp: Date.now(),
+        data,
+      });
     })
-  })
-  .catch(error => {
-    return returnError(response, error)
-  })
-})
+    .catch((error) => {
+      return returnError(response, error);
+    });
+});
 
 router.get('/tx/:hash', (request, response) => {
-  const {hash} = request.params
-  Transaction.findOne({hash})
-    .then(tx => {
-      if(!tx) throw 'Tx hash not found'
+  const { hash } = request.params;
+  Transaction.findOne({ hash })
+    .then((tx) => {
+      if (!tx) throw 'Tx hash not found';
       response.status(200).send({
         success: true,
         timestamp: Date.now(),
-        data: tx
-      })
+        data: tx,
+      });
     })
-    .catch(error => {
-      returnError(response, error)
-    })
-})
+    .catch((error) => {
+      returnError(response, error);
+    });
+});
 
 router.get('/address/:address', (request, response) => {
-  let {address} = request.params
-  address = web3.utils.toChecksumAddress(address)
-  Address.findOne({address})
-    .then(address => {
-      if(!address) throw 'Address not found'
+  let { address } = request.params;
+  address = web3.utils.toChecksumAddress(address);
+  Address.findOne({ address })
+    .then((address) => {
+      if (!address) throw 'Address not found';
       web3.eth.getBalance(address.address)
-        .then( balance => {
-          address.balance = web3.utils.fromWei(balance, 'ether')
+        .then((balance) => {
+          address.balance = web3.utils.fromWei(balance, 'ether');
           response.status(200).send({
             success: true,
             timestamp: Date.now(),
             data: address,
-          })
+          });
         })
-        .catch(error => console.log('Error'))
+        .catch((error) => {
+          returnError(response, error);
+        });
     })
-    .catch(error => {
-      returnError(response, error)
-    })
-})
+    .catch((error) => {
+      returnError(response, error);
+    });
+});
 
 router.get('/latestTransactions/:limit', (request, response) => {
-  const {limit} = request.params
-  if(!limit) limit = 1
-  if(+limit > (+process.env.API_LIMIT_TRANSACTIONS || 100)) return returnError(response, `Limit too high (MAX ${process.env.API_LIMIT_TRANSACTIONS})`)
-  Transaction.find().sort({ _id: -1 }).limit(+limit)
-    .then(tx => {
+  let { limit } = request.params;
+  if (!limit) limit = 1;
+  limit = parseInt(limit, 10);
+  if (limit > (+process.env.API_LIMIT_TRANSACTIONS || 100)) return returnError(response, `Limit too high (MAX ${process.env.API_LIMIT_TRANSACTIONS})`);
+  Transaction.find().sort({ _id: -1 }).limit(limit)
+    .then((tx) => {
       response.status(200).send({
         success: true,
         timestamp: Date.now(),
-        data: tx
-      })
+        data: tx,
+      });
     })
-    .catch(error => {
-      returnError(response, error)
-    })
-})
+    .catch((error) => {
+      returnError(response, error);
+    });
+});
 
 router.get('/latestBlock', (request, response) => {
   Block.findOne().sort({ _id: -1 })
-    .then(block => {
+    .then((block) => {
       response.status(200).send({
         success: true,
         timestamp: Date.now(),
-        data: block
-      })
+        data: block,
+      });
     })
-    .catch(error => {
-      returnError(response, error)
-    })
-})
+    .catch((error) => {
+      returnError(response, error);
+    });
+});
 
 router.get('/blockReward', (request, response) => {
   web3.eth.getBlock('latest')
-    .then(block => {
-      let reward
-      if(block.number < 6307200) {
-        reward = 3
-      } else if (block.number < (6307200*2)) {
-        reward = 2
+    .then((block) => {
+      let reward;
+      if (block.number < 6307200) {
+        reward = 3;
+      } else if (block.number < (6307200 * 2)) {
+        reward = 2;
       }
       response.status(200).send({
         success: true,
         timestamp: Date.now(),
-        data: reward
-      })
+        data: reward,
+      });
     })
-    .catch(error => {
-      returnError(response, error)
-    })
-})
+    .catch((error) => {
+      returnError(response, error);
+    });
+});
 
 router.get('/latestBlocks/:limit', (request, response) => {
-  const {limit} = request.params
-  if(+limit > (+process.env.API_LIMIT_BLOCKS || 25)) return returnError(response, `Limit too high (MAX ${process.env.API_LIMIT_BLOCKS})`)
-  console.log(limit)
-  Block.find().sort({ _id: -1 }).limit(+limit)
-    .then(block => {
+  let { limit } = request.params;
+  if (!limit) limit = 1;
+  limit = parseInt(limit, 10);
+  if (limit > (+process.env.API_LIMIT_BLOCKS || 25)) return returnError(response, `Limit too high (MAX ${process.env.API_LIMIT_BLOCKS})`);
+  console.log(limit);
+  Block.find().sort({ _id: -1 }).limit(limit)
+    .then((block) => {
       response.status(200).send({
         success: true,
         timestamp: Date.now(),
-        data: block
-      })
+        data: block,
+      });
     })
-    .catch(error => {
-      returnError(response, error)
-    })
-})
-
-const returnError = (response, message) => {
-  response.status(400).send({
-    success:false,
-    timestamp: Date.now(),
-    data: message
-  })
-}
-
+    .catch((error) => {
+      returnError(response, error);
+    });
+});
 
 module.exports = router;

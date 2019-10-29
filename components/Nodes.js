@@ -1,5 +1,3 @@
-const Web3 = require('web3')
-const web3 = new Web3(new Web3.providers.HttpProvider(process.env.WEB3_HTTP));
 const geoip = require('geoip-lite');
 const rpc = require('request')
 const ping = require('ping')

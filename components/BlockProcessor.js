@@ -1,24 +1,21 @@
 class BlockProcessor {
-
   constructor() {
-    this.blockProcessQue = []
+    this.blockProcessQue = [];
   }
 
   getFirstFromQue() {
-    if(this.blockProcessQue.length > 0) {
-      const block = this.blockProcessQue[0]
-      this.blockProcessQue.shift()
+    if (this.blockProcessQue.length > 0) {
+      const block = this.blockProcessQue[0];
+      this.blockProcessQue.shift();
       return block;
-    } else {
-      return false
     }
+    return false;
   }
 
   addBlockProcessQue(block) {
-    if(!block) return
-    this.blockProcessQue.push(block)
+    if (!block) return;
+    this.blockProcessQue.push(block);
   }
-
 }
 
-module.exports = BlockProcessor
+module.exports = BlockProcessor;

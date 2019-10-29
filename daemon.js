@@ -1,10 +1,10 @@
 const cluster = require('cluster')
 const chalk = require('chalk')
-let clusterWorker = null
 
 if (cluster.isMaster) {
   console.log(`${chalk.green('[+] Ledgerium Block Explorer Daemon Cluster Manager initiated (PID: ' + process.pid)})`)
-  clusterWorker = cluster.fork();
+  cluster.fork();
+
   cluster.on('exit', (worker, code, signal) => {
     console.log(chalk.yellow('[+] worker' + worker + ' code' + code + ' signal' + signal + ')'))
     switch(code) {
@@ -26,11 +26,11 @@ if (cluster.isMaster) {
       default:
         break;
     }
-    clusterWorker = cluster.fork();
+    cluster.fork();
   });
 }
 
 if (cluster.isWorker) {
   console.log(chalk.yellow('[+] Spawned new worker (PID: ' + process.pid + ')'))
-  const index = require('./index')
+  require('./index')
 }

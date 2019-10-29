@@ -1,12 +1,8 @@
 process.title = "Ledgerium Block Explorer Daemon v1.0"
-const dotenv = require('dotenv').config()
+require('dotenv').config()
 const chalk = require('chalk');
 const cluster = require('cluster')
-if (cluster.isMaster) {
- console.log(chalk.red('\n Run application with `node daemon`'))
- process.exit(1)
-}
-const axios = require('axios');
+
 const express = require('express');
 const mongoose = require('mongoose');
 const app = express();
@@ -15,7 +11,6 @@ const cors = require('cors');
 const port = process.env.SERVER_PORT || 1337;
 const socket = require('socket.io');
 const server = app.listen(port, () => {
- const io = module.exports = socket(server);
  console.log(chalk.green(`[+] Listening on port: ${port}`))
  const router = require('./routes/');
  app.use(express.json());
@@ -52,7 +47,7 @@ if(commandLineArguments.includes('--resync')) {
  promises.push(Transaction.deleteMany({}))
  promises.push(Address.deleteMany({}))
  Promise.all(promises)
-   .then(done => {
+   .then(() => {
      console.log(chalk.bgRed("[!] Database reset"))
      global.isReady=true
    })
@@ -60,3 +55,11 @@ if(commandLineArguments.includes('--resync')) {
 } else {
    global.isReady=true
 }
+
+
+if (cluster.isMaster) {
+ console.log(chalk.red('\n Run application with `node daemon`'))
+ process.exit(1)
+}
+
+module.exports = socket(server);
