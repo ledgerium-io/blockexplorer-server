@@ -67,7 +67,7 @@ class Nodes {
     }, 5000);
   }
 
-  static findMinMax(arr, key) {
+  findMinMax(arr, key) {
     let min = arr[0][key];
     let max = arr[0][key];
     for (let i = 0; i < arr.length; i += 1) {
@@ -107,7 +107,7 @@ class Nodes {
     this.maxBlockTime = minmax.max;
   }
 
-  static calculateUptime(upTimeRequests, upTimeReplies) {
+  calculateUptime(upTimeRequests, upTimeReplies) {
     if (upTimeRequests === 0) return '100';
     const uptime = ((upTimeReplies / upTimeRequests) * 100).toFixed(2);
     return uptime === '100.00' ? '100' : uptime;
