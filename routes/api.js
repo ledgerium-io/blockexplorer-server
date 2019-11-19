@@ -5,7 +5,7 @@ const Block = require('../models/Block');
 const Transaction = require('../models/Transaction');
 const Address = require('../models/Address');
 const BlockchainSync = require('../components/BlockchainSync');
-const NodeNew = require('../components/NodeNew');
+const NodeNew = require('../components/NodesNew2');
 const Nodes = require('../components/Nodes');
 
 const router = express.Router();
