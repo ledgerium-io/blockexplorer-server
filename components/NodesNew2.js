@@ -5,7 +5,7 @@ const io = require('../index');
 class Nodes {
 
   constructor() {
-    this.url = 'wss://flinders.ledgerium.io/stats/primus/'
+    this.url = process.env.NODESTATS_URL
     this.nodes = {}
 
     this.bestBlock = 0;
@@ -42,7 +42,6 @@ class Nodes {
         avgTransactions: this.avgTransactions,
         maxTransactions: this.maxTransactions,
       };
-      //  console.log(payload)
       io.emit('blockStats', payload);
     }, 1000);
   }
@@ -154,7 +153,7 @@ class Nodes {
         if(block.number > self.bestBlock) {
 
           self.addBlockTime(block.received, self.lastBlockTime);
-          self.addTransactions(block.number, block.transactions);
+          self.addTransactions(block.number, block.transactions.length);
 
           self.bestBlock = block.number
           self.lastBlockTime = block.received
