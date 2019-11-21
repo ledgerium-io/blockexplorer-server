@@ -1,4 +1,6 @@
 const WebSocket = require('ws')
+const geoip = require('geoip-lite');
+const isIp = require('is-ip');
 
 const io = require('../index');
 
@@ -86,6 +88,12 @@ class Nodes {
     this.maxBlockTime = minmax.max;
   }
 
+  getGeo(id, ip) {
+    if(isIp(ip) {
+      this.nodes[id].geo = geoip.lookup(ip)
+    }
+  }
+
   init() {
     const connection = new WebSocket(this.url)
 
@@ -128,10 +136,11 @@ class Nodes {
             propagationTime: node.stats.propagationAvg,
             ping: node.stats.latency,
             ip: node.info.ipaddress,
-            geo: node.geo,
+            geo: null,
             upTime: 100,
             lastSeen: node.uptime.lastUpdate,
           }
+          self.getGeo(node.id, node.info.ipaddress)
           console.log('Registered new node: ', node.info.name )
         })
       }
