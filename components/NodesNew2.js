@@ -127,7 +127,7 @@ class Nodes {
             totalDifficulty: node.stats.block.totalDifficulty,
             propagationTime: node.stats.propagationAvg,
             ping: node.stats.latency,
-            ip: node.info.ip,
+            ip: node.info.ipaddress,
             geo: node.geo,
             upTime: 100,
             lastSeen: node.uptime.lastUpdate,
