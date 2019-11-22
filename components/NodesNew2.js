@@ -1,6 +1,7 @@
 const WebSocket = require('ws')
 const geoip = require('geoip-lite');
 const isIp = require('is-ip');
+const execSync = require('child_process').execSync;
 
 const io = require('../index');
 
@@ -9,7 +10,8 @@ class Nodes {
   constructor() {
     this.url = process.env.NODESTATS_URL
     this.nodes = {}
-
+    this.serverIP = null
+    this.serverGeo = null
     this.bestBlock = 0;
     this.lastBlockMiner = '0x0000000000000000000000000000000000000000';
     this.lastBlockTime = 0;
@@ -23,9 +25,33 @@ class Nodes {
     this.maxTransactions = 0;
 
     this.charts = {}
-    this.init()
-    this.emitNodes()
+    this.setIP()
+      .then((ip)=>{
+        console.log(`Server IP set: ${ip}`)
+        this.init()
+        this.emitNodes()
+      })
 
+  }
+
+  setIP() {
+    return new Promise((resolve, reject) => {
+      this.getIP()
+        .then(ip => {
+          this.serverIP = ip
+          if (isIp(ip)) {
+            this.serverGeo = geoip.lookup(ip)
+          }
+          resolve(ip)
+        })
+        .catch(reject)
+    })
+  }
+
+  getIP() {
+   return new Promise( (resolve, reject) => {
+     resolve(String(execSync('curl -s https://api.ipify.org')))
+   })
   }
 
   emitNodes() {
@@ -89,8 +115,10 @@ class Nodes {
   }
 
   getGeo(id, ip) {
-    if(isIp(ip) {
+    if(isIp(ip)) {
       this.nodes[id].geo = geoip.lookup(ip)
+    } else {
+      this.nodes[id].geo = this.serverGeo
     }
   }
 
@@ -135,12 +163,18 @@ class Nodes {
             totalDifficulty: node.stats.block.totalDifficulty,
             propagationTime: node.stats.propagationAvg,
             ping: node.stats.latency,
-            ip: node.info.ipaddress,
+            ip: null,
             geo: null,
             upTime: 100,
             lastSeen: node.uptime.lastUpdate,
           }
-          self.getGeo(node.id, node.info.ipaddress)
+          if(node.info.ipaddress) {
+            self.nodes[node.id].ip = node.info.ipaddress
+            self.getGeo(node.id, node.info.ipaddress)
+          } else {
+            self.nodes[node.id].ip = self.serverIP
+            self.nodes[node.id].geo = self.serverGeo
+          }
           console.log('Registered new node: ', node.info.name )
         })
       }
