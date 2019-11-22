@@ -11,7 +11,7 @@ const Nodes = require('../components/Nodes');
 const router = express.Router();
 const nodes = new Nodes();
 const web3 = new Web3(new Web3.providers.HttpProvider(process.env.WEB3_HTTP));
-new NodeNew();
+const nodeStats = new NodeNew();
 new BlockchainSync();
 
 const validUnits = [
@@ -60,6 +60,14 @@ const returnError = (response, message) => {
     data: message,
   });
 };
+
+router.get('/nodestats', (request, response) => {
+  response.status(200).send({
+    success: true,
+    timestamp: Date.now(),
+    nodes: nodeStats.nodes
+  })
+})
 
 router.get('/ping', (request, response) => {
   response.status(200).send({
